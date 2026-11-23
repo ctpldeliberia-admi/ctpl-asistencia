@@ -44,14 +44,12 @@
   .u .t{font-size:10px;font-weight:800;letter-spacing:.06em;padding:3px 7px;border-radius:6px}
   .u .t.E{background:rgba(70,152,122,.25);color:#9fe0c4}.u .t.S{background:rgba(159,180,212,.22);color:#c9d3e1}
   .u .h{margin-left:auto;font-variant-numeric:tabular-nums;opacity:.85}
-  .flash{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(15,20,28,.82);backdrop-filter:blur(6px);z-index:20}
-  .flash.ver{display:flex;animation:ap .25s ease}
-  @keyframes ap{from{opacity:0}to{opacity:1}}
-  .flash .c{text-align:center}
-  .flash img{width:min(30vh,240px);height:min(30vh,240px);border-radius:50%;object-fit:cover;border:6px solid #dfe4eb;box-shadow:0 20px 60px rgba(0,0,0,.5);background:#5b7190}
-  .flash h2{font-size:clamp(24px,3vw,52px);margin-top:2.4vh}
-  .flash .tp{display:inline-block;margin-top:1.4vh;font-size:clamp(16px,1.8vw,30px);font-weight:800;padding:.6vh 1.6vw;border-radius:40px;background:linear-gradient(180deg,#46987a,#2a6a50)}
-  .flash .tp.S{background:var(--boton)}
+  .okmarca{margin-top:3vh;display:inline-flex;align-items:center;gap:12px;padding:1.4vh 2vw 1.4vh 1.4vh;border-radius:60px;
+    background:linear-gradient(180deg,#46987a,#2a6a50);box-shadow:0 10px 30px rgba(42,106,80,.45);font-size:clamp(16px,1.7vw,28px);font-weight:800;
+    opacity:0;transform:translateY(10px);transition:opacity .25s, transform .25s;pointer-events:none}
+  .okmarca.ver{opacity:1;transform:none}
+  .okmarca i{width:clamp(30px,3vw,48px);height:clamp(30px,3vw,48px);border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
+  .okmarca svg{width:65%;height:65%;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
   .esquina{position:fixed;right:14px;bottom:12px;display:flex;gap:8px;opacity:.35}
   .esquina:hover{opacity:1}
   .esquina button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:8px;cursor:pointer}
@@ -91,10 +89,10 @@
       <div class="paso"><b>2</b>Pulse "Escanear QR para marcar"</div>
       <div class="paso"><b>3</b>Apunte a este código</div>
     </div>
+    <div class="okmarca" id="okMarca"><i><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><span id="okTxt">Marca registrada</span></div>
   </div>
 </div>
 
-<div class="flash" id="flash"><div class="c"><img id="fFoto" alt=""><h2 id="fNom"></h2><div class="tp" id="fTipo"></div></div></div>
 
 <div class="estado oculto" id="estado"><span class="punto" id="punto"></span><span id="estTxt">En línea</span></div>
 <div class="esquina oculto" id="esq">
@@ -131,9 +129,9 @@
       DUR = r.seg * 1000; FIN = (r.slot + 1) * DUR;
       dibujarQR(r.qr);
       $('inst').textContent = r.institucion + ' · ' + r.nombre;
-      if (r.foto && BASE && r.marcas[0]) destello(r.foto.src, r.marcas[0]);
+      if (BASE && r.nuevas) marcaOk(r.nuevas);
       BASE = true;
-      if (r.marcas[0]) ULT_ID = r.marcas[0].id;
+      ULT_ID = r.ultimoId || '-';   // '-' = aún no hay marcas hoy
       $('punto').classList.remove('mal'); $('estTxt').textContent = 'En línea · ' + K.kid;
       const espera = Math.max(1500, Math.min(DUR, FIN - (Date.now() + OFF) + 300));
       TIMER = setTimeout(pulso, espera);   // una consulta por cada QR nuevo
@@ -159,10 +157,9 @@
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (q.isDark(y, x)) d += 'M' + x + ' ' + y + 'h1v1h-1z';
     $('qr').innerHTML = '<svg viewBox="0 0 ' + n + ' ' + n + '" shape-rendering="crispEdges"><path fill="#1b222e" d="' + d + '"/></svg>';
   }
-  function destello(src, m){
-    $('fFoto').src = src || ''; $('fFoto').style.visibility = src ? 'visible' : 'hidden';
-    $('fNom').textContent = m.nombre; $('fTipo').textContent = m.tipo + ' · ' + m.hora; $('fTipo').className = 'tp ' + m.tipo.charAt(0);
-    $('flash').classList.add('ver'); clearTimeout(destello._t); destello._t = setTimeout(() => $('flash').classList.remove('ver'), 3500);
+  function marcaOk(n){
+    $('okTxt').textContent = n > 1 ? n + ' marcas registradas' : 'Marca registrada';
+    $('okMarca').classList.add('ver'); clearTimeout(marcaOk._t); marcaOk._t = setTimeout(() => $('okMarca').classList.remove('ver'), 2500);
   }
   function animar(){
     const ahora = Date.now() + OFF, d = new Date(ahora);
