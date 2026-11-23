@@ -34,7 +34,7 @@
   .hora{font-size:clamp(54px,8.2vw,150px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:2.4vh 0 .6vh;font-variant-numeric:tabular-nums;
         background:linear-gradient(180deg,#ffffff 0%,#d3dae5 55%,#a8b3c4 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
   .fecha{font-size:clamp(15px,1.6vw,26px);opacity:.85;font-weight:600}
-  .pasos{display:flex;gap:1.2vw;margin:3vh 0;flex-wrap:wrap}
+  .pasos{display:flex;gap:1.2vw;margin:4vh 0 0;flex-wrap:wrap}
   .paso{flex:1;min-width:140px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:1.4vh 1vw;font-size:clamp(12px,1vw,16px)}
   .paso b{display:block;font-size:clamp(18px,1.8vw,28px);color:#c9d3e1}
   .ultimos{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:1.4vh 1.2vw}
@@ -91,7 +91,6 @@
       <div class="paso"><b>2</b>Pulse "Escanear QR para marcar"</div>
       <div class="paso"><b>3</b>Apunte a este código</div>
     </div>
-    <div class="ultimos"><h3>Últimas marcas</h3><div id="ult"></div></div>
   </div>
 </div>
 
@@ -132,8 +131,6 @@
       DUR = r.seg * 1000; FIN = (r.slot + 1) * DUR;
       dibujarQR(r.qr);
       $('inst').textContent = r.institucion + ' · ' + r.nombre;
-      $('ult').innerHTML = r.marcas.length ? r.marcas.map(m => '<div class="u"><span class="t ' + m.tipo.charAt(0) + '">' + m.tipo + '</span><span>' + escH(m.nombre) + '</span><span class="h">' + m.hora + '</span></div>').join('')
-        : '<div class="u" style="opacity:.6">Aún no hay marcas hoy</div>';
       if (r.foto && BASE && r.marcas[0]) destello(r.foto.src, r.marcas[0]);
       BASE = true;
       if (r.marcas[0]) ULT_ID = r.marcas[0].id;
