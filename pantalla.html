@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1b222e">
+<title>CTPL · Pantalla de marcas</title>
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="css/app.css">
+<script src="config.js"></script>
+<script src="js/comun.js"></script>
+<script src="js/llavero.js"></script>
+<script src="js/qr.min.js"></script>
+<style>
+  html,body{height:100%;overflow:hidden}
+  body{background:radial-gradient(1200px 700px at 20% 0%,#3c4a60 0%,#253041 45%,#161c26 100%);color:#fff}
+  .k{height:100vh;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:3vw;padding:3.2vw 3.6vw;align-items:center}
+  @media(orientation:portrait){.k{grid-template-columns:1fr;grid-template-rows:auto auto;gap:3vh;padding:4vh 5vw;align-content:center}}
+  .qrzona{display:flex;flex-direction:column;align-items:center}
+  .qrmarco{position:relative;width:min(44vw,72vh);aspect-ratio:1;border-radius:4%;padding:4.5%;background:var(--metal);
+    box-shadow:0 1px 0 #fff inset,0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.25)}
+  @media(orientation:portrait){.qrmarco{width:min(78vw,52vh)}}
+  .qrin{width:100%;height:100%;background:#fff;border-radius:3%;padding:4%;display:flex}
+  .qrin svg{width:100%;height:100%;display:block}
+  .qrerr{margin:auto;text-align:center;color:var(--acero-600);font-weight:600;font-size:clamp(13px,1.3vw,20px);padding:6%}
+  .qrerr b{display:block;font-size:1.3em;margin-bottom:.6em;color:var(--acero-800)}
+  .qrerr small{display:block;margin-top:1em;font-size:.7em;color:var(--err);word-break:break-word}
+  .barra{width:min(44vw,72vh);height:8px;border-radius:8px;background:rgba(255,255,255,.12);margin-top:2.2vh;overflow:hidden}
+  @media(orientation:portrait){.barra{width:min(78vw,52vh)}}
+  .barra i{display:block;height:100%;width:100%;border-radius:8px;background:linear-gradient(90deg,#9fb4d4,#dfe4eb);transform-origin:left}
+  .seg{margin-top:1vh;font-size:1.6vh;opacity:.7;font-weight:600;letter-spacing:.04em}
+  .info h1{font-size:clamp(20px,2.6vw,42px);line-height:1.1}
+  .info .inst{font-size:clamp(12px,1.15vw,18px);opacity:.7;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .hora{font-size:clamp(54px,8.2vw,150px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:2.4vh 0 .6vh;font-variant-numeric:tabular-nums;
+        background:linear-gradient(180deg,#ffffff 0%,#d3dae5 55%,#a8b3c4 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .fecha{font-size:clamp(15px,1.6vw,26px);opacity:.85;font-weight:600}
+  .pasos{display:flex;gap:1.2vw;margin:3vh 0;flex-wrap:wrap}
+  .paso{flex:1;min-width:140px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:1.4vh 1vw;font-size:clamp(12px,1vw,16px)}
+  .paso b{display:block;font-size:clamp(18px,1.8vw,28px);color:#c9d3e1}
+  .ultimos{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:1.4vh 1.2vw}
+  .ultimos h3{font-size:clamp(11px,.9vw,14px);letter-spacing:.1em;opacity:.65;text-transform:uppercase;margin-bottom:1vh}
+  .u{display:flex;align-items:center;gap:10px;padding:.7vh 0;border-top:1px solid rgba(255,255,255,.07);font-size:clamp(13px,1.1vw,18px)}
+  .u:first-of-type{border-top:0}
+  .u .t{font-size:10px;font-weight:800;letter-spacing:.06em;padding:3px 7px;border-radius:6px}
+  .u .t.E{background:rgba(70,152,122,.25);color:#9fe0c4}.u .t.S{background:rgba(159,180,212,.22);color:#c9d3e1}
+  .u .h{margin-left:auto;font-variant-numeric:tabular-nums;opacity:.85}
+  .flash{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(15,20,28,.82);backdrop-filter:blur(6px);z-index:20}
+  .flash.ver{display:flex;animation:ap .25s ease}
+  @keyframes ap{from{opacity:0}to{opacity:1}}
+  .flash .c{text-align:center}
+  .flash img{width:min(30vh,240px);height:min(30vh,240px);border-radius:50%;object-fit:cover;border:6px solid #dfe4eb;box-shadow:0 20px 60px rgba(0,0,0,.5);background:#5b7190}
+  .flash h2{font-size:clamp(24px,3vw,52px);margin-top:2.4vh}
+  .flash .tp{display:inline-block;margin-top:1.4vh;font-size:clamp(16px,1.8vw,30px);font-weight:800;padding:.6vh 1.6vw;border-radius:40px;background:linear-gradient(180deg,#46987a,#2a6a50)}
+  .flash .tp.S{background:var(--boton)}
+  .esquina{position:fixed;right:14px;bottom:12px;display:flex;gap:8px;opacity:.35}
+  .esquina:hover{opacity:1}
+  .esquina button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:8px;cursor:pointer}
+  .estado{position:fixed;left:14px;bottom:12px;font-size:12px;opacity:.5;display:flex;align-items:center;gap:6px}
+  .punto{width:8px;height:8px;border-radius:50%;background:#6fd3a8;box-shadow:0 0 8px #6fd3a8}
+  .punto.mal{background:#e07a7a;box-shadow:0 0 8px #e07a7a}
+  .config{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px}
+  .config .panel{width:min(420px,100%);padding:26px;color:var(--txt)}
+</style>
+</head>
+<body>
+
+<div class="config oculto" id="vConfig">
+  <div class="panel">
+    <h2 style="color:var(--acero-700);margin-bottom:4px">Configurar pantalla de marcas</h2>
+    <p class="ayuda" style="margin-top:0">Solo la administración puede autorizar este equipo. Quedará ligado a este navegador.</p>
+    <div id="cMsg"></div>
+    <div class="campo"><label>Nombre de la pantalla</label><input class="inp" id="cNom" placeholder="PORTÓN PRINCIPAL" style="text-transform:uppercase"></div>
+    <div class="campo"><label>Clave de administrador</label><input class="inp" id="cClave" type="password" onkeydown="if(event.key==='Enter')registrar()"></div>
+    <button class="btn btn-pri btn-bloque" onclick="registrar()">Autorizar esta pantalla</button>
+  </div>
+</div>
+
+<div class="k oculto" id="vK">
+  <div class="qrzona">
+    <div class="qrmarco"><div class="qrin" id="qr"></div></div>
+    <div class="barra"><i id="barra"></i></div>
+    <div class="seg" id="seg">El código cambia cada pocos segundos</div>
+  </div>
+  <div class="info">
+    <div class="inst" id="inst">Colegio Técnico Profesional de Liberia</div>
+    <h1>Registro de entrada y salida</h1>
+    <div class="hora" id="hora">--:--:--</div>
+    <div class="fecha" id="fecha"></div>
+    <div class="pasos">
+      <div class="paso"><b>1</b>Abra CTPL Asistencia en su teléfono</div>
+      <div class="paso"><b>2</b>Pulse "Escanear QR para marcar"</div>
+      <div class="paso"><b>3</b>Apunte a este código</div>
+    </div>
+    <div class="ultimos"><h3>Últimas marcas</h3><div id="ult"></div></div>
+  </div>
+</div>
+
+<div class="flash" id="flash"><div class="c"><img id="fFoto" alt=""><h2 id="fNom"></h2><div class="tp" id="fTipo"></div></div></div>
+
+<div class="estado oculto" id="estado"><span class="punto" id="punto"></span><span id="estTxt">En línea</span></div>
+<div class="esquina oculto" id="esq">
+  <button onclick="pantallaCompleta()" title="Pantalla completa"><svg class="ico" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+<div class="toast" id="toast"></div>
+<div class="cargando" id="cargando"></div>
+
+<script>
+  let K = null, BASE = false, OFF = 0, FIN = 0, DUR = 15000, ULT_ID = '', TIMER = null, FALLOS = 0;
+
+  async function init(){
+    K = await LLAVERO.leer('kiosco').catch(() => null);
+    if (K && await LLAVERO.tieneLlave('k_')) { mostrarK(); pulso(); } else $('vConfig').classList.remove('oculto');
+  }
+  async function registrar(){
+    cargando(true, 'Autorizando…');
+    try {
+      const r = await llamar('kioscoRegistrar', $('cClave').value, $('cNom').value || 'PANTALLA');
+      await LLAVERO.guardarLlave(r.llave, 'k_');
+      K = { kid: r.kid, nombre: r.nombre }; await LLAVERO.poner('kiosco', K);
+      $('vConfig').classList.add('oculto'); mostrarK(); pulso();
+    } catch (e) { $('cMsg').innerHTML = '<div class="alerta al-err">' + escH(e.message) + '</div>'; }
+    cargando(false);
+  }
+  function mostrarK(){ ['vK','estado','esq'].forEach(x => $(x).classList.remove('oculto')); bloquearPantalla(); }
+
+  async function pulso(){
+    clearTimeout(TIMER);
+    try {
+      const ts = String(Date.now() + OFF);
+      const r = await llamar('kioscoPulso', K.kid, ts, await LLAVERO.firmar(K.kid + '|' + ts + '|pulso', 'k_'), ULT_ID);
+      OFF = r.ahora - Date.now(); FALLOS = 0;
+      DUR = r.seg * 1000; FIN = (r.slot + 1) * DUR;
+      dibujarQR(r.qr);
+      $('inst').textContent = r.institucion + ' · ' + r.nombre;
+      $('ult').innerHTML = r.marcas.length ? r.marcas.map(m => '<div class="u"><span class="t ' + m.tipo.charAt(0) + '">' + m.tipo + '</span><span>' + escH(m.nombre) + '</span><span class="h">' + m.hora + '</span></div>').join('')
+        : '<div class="u" style="opacity:.6">Aún no hay marcas hoy</div>';
+      if (r.foto && BASE && r.marcas[0]) destello(r.foto.src, r.marcas[0]);
+      BASE = true;
+      if (r.marcas[0]) ULT_ID = r.marcas[0].id;
+      $('punto').classList.remove('mal'); $('estTxt').textContent = 'En línea · ' + K.kid;
+      const espera = Math.max(1500, Math.min(DUR, FIN - (Date.now() + OFF) + 300));
+      TIMER = setTimeout(pulso, espera);   // una consulta por cada QR nuevo
+    } catch (e) {
+      const m = e.message || '';
+      if (m.indexOf('PANTALLA_NO_AUTORIZADA') >= 0) {
+        await LLAVERO.quitar('kiosco'); $('vK').classList.add('oculto'); $('vConfig').classList.remove('oculto');
+        $('cMsg').innerHTML = '<div class="alerta al-warn">Esta pantalla fue revocada. Vuelva a autorizarla.</div>'; return;
+      }
+      FALLOS++; $('punto').classList.add('mal'); $('estTxt').textContent = 'Sin conexión, reintentando…';
+      if (!QR_ACTUAL || FALLOS > 2) {
+        QR_ACTUAL = '';
+        $('qr').innerHTML = '<div class="qrerr"><b>Sin código por el momento</b>Reintentando conexión…<small>' + escH(m) + '</small></div>';
+      }
+      TIMER = setTimeout(pulso, 3000);
+    }
+  }
+  let QR_ACTUAL = '';
+  function dibujarQR(t){
+    if (t === QR_ACTUAL) return; QR_ACTUAL = t; $('qr').style.opacity = 1;
+    const q = qrcode(0, 'M'); q.addData(t); q.make();
+    const n = q.getModuleCount(); let d = '';
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (q.isDark(y, x)) d += 'M' + x + ' ' + y + 'h1v1h-1z';
+    $('qr').innerHTML = '<svg viewBox="0 0 ' + n + ' ' + n + '" shape-rendering="crispEdges"><path fill="#1b222e" d="' + d + '"/></svg>';
+  }
+  function destello(src, m){
+    $('fFoto').src = src || ''; $('fFoto').style.visibility = src ? 'visible' : 'hidden';
+    $('fNom').textContent = m.nombre; $('fTipo').textContent = m.tipo + ' · ' + m.hora; $('fTipo').className = 'tp ' + m.tipo.charAt(0);
+    $('flash').classList.add('ver'); clearTimeout(destello._t); destello._t = setTimeout(() => $('flash').classList.remove('ver'), 3500);
+  }
+  function animar(){
+    const ahora = Date.now() + OFF, d = new Date(ahora);
+    $('hora').textContent = d.toLocaleTimeString('es-CR', { hour12: false });
+    $('fecha').textContent = mayus(d.toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+    const resta = Math.max(0, FIN - ahora);
+    $('barra').style.transform = 'scaleX(' + (DUR ? resta / DUR : 0) + ')';
+    $('seg').textContent = 'Nuevo código en ' + Math.ceil(resta / 1000) + ' s';
+    if (FIN && resta <= 0 && !animar._p) { animar._p = 1; pulso().finally(() => animar._p = 0); }
+    requestAnimationFrame(animar);
+  }
+  async function bloquearPantalla(){ try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (e) {} }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { bloquearPantalla(); pulso(); } });
+  function pantallaCompleta(){ const e = document.documentElement; (e.requestFullscreen || e.webkitRequestFullscreen || function(){}).call(e); }
+  requestAnimationFrame(animar);
+  init();
+</script>
+</body>
+</html>

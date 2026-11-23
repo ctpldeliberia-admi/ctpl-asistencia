@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f3b4f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CTPL">
+<title>CTPL Asistencia</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="stylesheet" href="css/app.css">
+<script src="config.js"></script>
+<script src="js/comun.js"></script>
+<script src="js/carnet.js"></script>
+<script src="js/llavero.js"></script>
+<script src="js/jsQR.js"></script>
+<style>
+  body{min-height:100vh}
+  body.con-nav{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  .wrap{max-width:560px;margin:0 auto;padding:0 14px}
+  .hero{padding:calc(30px + env(safe-area-inset-top)) 20px 74px;text-align:center}
+  .logo{width:66px;height:66px;border-radius:18px;margin:0 auto 12px;background:var(--metal);display:flex;align-items:center;justify-content:center;color:var(--acero-700);box-shadow:0 6px 18px rgba(0,0,0,.3),0 1px 0 #fff inset}
+  .logo .ico{width:36px;height:36px}
+  .hero small{display:block;opacity:.75;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+  .hero h1{font-size:23px;margin-top:6px}.hero p{margin:6px 0 0;opacity:.8;font-size:13.5px}
+  .sube{margin-top:-50px;position:relative;z-index:2}
+  .card{padding:20px;margin-bottom:14px}
+  .opciones{display:grid;gap:12px}
+  .gran-btn{display:flex;align-items:center;gap:14px;width:100%;min-height:76px;text-align:left;padding:16px 18px;border-radius:16px;cursor:pointer;margin:0;font:inherit;box-sizing:border-box}
+  .gran-btn div{flex:1;min-width:0}
+  .gran-btn .ico{width:30px;height:30px;flex:none}
+  .gran-btn b{display:block;font-size:16px}.gran-btn span{font-size:12.5px;opacity:.8}
+  .gran-btn.g-pri{background:var(--boton);color:#fff;border:1px solid #2c384c;box-shadow:0 8px 20px rgba(37,48,65,.3)}
+  .gran-btn.g-sec{background:var(--metal);color:var(--acero-700);border:1px solid var(--plata-300)}
+  .nota{font-size:12px;color:var(--txt-2);display:flex;gap:8px;align-items:flex-start;margin-top:10px}
+  .nota .ico{width:16px;height:16px;margin-top:1px;flex:none}
+  .tabs{display:flex;background:var(--plata-200);border-radius:12px;padding:4px;margin-bottom:18px;gap:4px}
+  .tabs button{flex:1;border:0;background:none;padding:10px 4px;border-radius:9px;font:700 12.5px 'Inter';color:var(--txt-2);cursor:pointer}
+  .tabs button.on{background:#fff;color:var(--acero-700);box-shadow:0 2px 6px rgba(27,34,46,.12)}
+  .volver{display:inline-flex;align-items:center;gap:4px;background:none;border:0;color:#fff;opacity:.85;font:600 13px 'Inter';cursor:pointer;position:absolute;left:12px;top:calc(12px + env(safe-area-inset-top))}
+  .volver .ico{width:18px;height:18px}
+  .hero{position:relative}
+  /* registro */
+  .reg-grid{display:grid;gap:16px;grid-template-columns:1fr}
+  @media(min-width:900px){.reg-grid{grid-template-columns:1.15fr .85fr;max-width:1000px;margin:0 auto;align-items:start}.reg-prev{position:sticky;top:16px}}
+  .paso{display:flex;align-items:center;gap:10px;margin:22px 0 14px}.paso:first-child{margin-top:0}
+  .paso b{width:28px;height:28px;border-radius:50%;background:var(--boton);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+  .paso h2{font-size:13.5px;color:var(--acero-600);text-transform:uppercase;letter-spacing:.06em}
+  .seg{display:flex;background:var(--plata-200);border-radius:12px;padding:4px;gap:4px}
+  .seg label{flex:1;margin:0;cursor:pointer}.seg input{display:none}
+  .seg span{display:block;text-align:center;padding:11px 6px;border-radius:9px;font-weight:700;font-size:13.5px;color:var(--txt-2)}
+  .seg input:checked+span{background:#fff;color:var(--acero-700);box-shadow:0 2px 6px rgba(27,34,46,.14)}
+  .mayus{text-transform:uppercase}
+  .fotobtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #recorte{display:none;margin-top:16px;text-align:center;padding:16px;border-radius:14px;background:var(--plata-50);border:1px dashed var(--plata-300)}
+  #visor{width:220px;height:220px;border-radius:50%;touch-action:none;cursor:grab;background:var(--plata-300);box-shadow:0 0 0 5px #fff,0 0 0 7px var(--plata-400),0 10px 24px rgba(27,34,46,.25)}
+  .zoom{display:flex;align-items:center;gap:10px;max-width:250px;margin:14px auto 0;color:var(--txt-2);font-weight:700}
+  .zoom input{flex:1;accent-color:var(--acero-600)}
+  .prev{display:flex;justify-content:center}
+  .prev .carnet{width:min(250px,64vw);border-radius:13px;box-shadow:0 16px 36px rgba(27,34,46,.3)}
+  .chk{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:16px}
+  .chk div{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--plata-500)}
+  .chk .ico{width:17px;height:17px;padding:2px;border-radius:50%;background:var(--plata-200);color:#fff;stroke-width:3}
+  .chk div.ok{color:var(--ok)}.chk div.ok .ico{background:var(--ok)}
+  .codigo{font-size:28px;letter-spacing:10px;text-align:center;font-weight:800}
+  /* app */
+  .top{padding:calc(18px + env(safe-area-inset-top)) 18px 64px;border-radius:0 0 26px 26px}
+  .top-in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:14px}
+  .avatar{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.8);background:#8a96a8;flex:none}
+  .top h2{font-size:16px;line-height:1.2}.top small{opacity:.78;font-size:12px;display:block;margin-top:2px}
+  .verif{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;background:rgba(255,255,255,.12);padding:5px 8px;border-radius:20px;border:1px solid rgba(255,255,255,.2)}
+  .verif .ico{width:14px;height:14px}
+  .sec{margin-top:-46px;position:relative;z-index:2}
+  .reloj{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--acero-700)}
+  .fecha{color:var(--txt-2);font-weight:600}
+  .marcar-btn{width:100%;margin-top:16px;border:0;border-radius:18px;padding:20px;background:var(--boton);color:#fff;font:800 18px 'Inter';display:flex;align-items:center;justify-content:center;gap:12px;cursor:pointer;box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 10px 24px rgba(37,48,65,.35);position:relative;overflow:hidden}
+  .marcar-btn .ico{width:30px;height:30px}
+  .marcar-btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);animation:brillo 3.2s infinite}
+  @keyframes brillo{to{left:130%}}
+  .sig{font-size:12px;text-align:center;margin-top:8px;color:var(--txt-2);font-weight:600}
+  .lineas{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .marca{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:11px;background:var(--plata-100);border:1px solid var(--plata-200);font-weight:700;font-size:13px}
+  .marca b{font-size:10px;letter-spacing:.06em;padding:2px 6px;border-radius:6px}
+  .m-E b{background:var(--ok-bg);color:var(--ok)} .m-S b{background:var(--info-bg);color:var(--acero-600)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .kpi{text-align:center;padding:10px 4px;border-radius:12px;background:var(--plata-50);border:1px solid var(--plata-200)}
+  .kpi b{display:block;font-size:19px;color:var(--acero-700)} .kpi span{font-size:10.5px;color:var(--txt-2);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .tit{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+  .tit h3{font-size:14px;color:var(--acero-600);text-transform:uppercase;letter-spacing:.05em}
+  nav.bn{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,#fdfdfe,#eceff3);border-top:1px solid var(--plata-300);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:50;box-shadow:0 -4px 16px rgba(27,34,46,.08)}
+  nav.bn button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font:700 10.5px 'Inter';color:var(--plata-500);padding:6px 0;cursor:pointer}
+  nav.bn button.on{color:var(--acero-700)}
+  .carnet-zona{display:flex;flex-direction:column;align-items:center;padding:6px 0 4px}
+  .carnet-zona .carnet{width:min(300px,80vw);border-radius:14px;box-shadow:0 18px 40px rgba(27,34,46,.35)}
+  .vigencia{margin-top:14px;width:min(300px,80vw);border-radius:12px;padding:10px 12px;text-align:center;position:relative;overflow:hidden}
+  .vigencia b{display:block;font-size:11px;letter-spacing:.12em}.vigencia span{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+  .vigencia::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.25) 50%,transparent 80%);animation:barrido 2.4s linear infinite}
+  @keyframes barrido{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+  .semnav{display:flex;align-items:center;gap:8px}.semnav .btn{padding:8px}
+  .dia{padding:12px 0;border-bottom:1px solid var(--plata-200)}.dia:last-child{border:0}
+  .dia h4{margin:0 0 6px;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+  .vacio{color:var(--plata-500);font-size:13px;font-weight:600}
+  .inf{padding:14px;margin-bottom:10px;cursor:pointer}
+  .inf h4{margin:0;font-size:14px;display:flex;justify-content:space-between}
+  .inf .det{margin-top:12px;display:none}.inf.abierto .det{display:block}
+  .tdia{width:100%;font-size:12px;border-collapse:collapse}
+  .tdia td{padding:6px 4px;border-top:1px solid var(--plata-200);vertical-align:top}
+  .interruptor{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
+  .interruptor input{width:46px;height:26px;appearance:none;background:var(--plata-300);border-radius:20px;position:relative;cursor:pointer;flex:none;transition:.2s}
+  .interruptor input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s}
+  .interruptor input:checked{background:var(--acero-600)}.interruptor input:checked::after{left:23px}
+  .instalar{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:14px}
+  .instalar img{width:42px;height:42px;border-radius:11px}
+  /* escáner */
+  #scan{position:fixed;inset:0;background:#0d1117;z-index:120;display:none;flex-direction:column}
+  #scan.ver{display:flex}
+  #scan video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .marco{position:absolute;left:50%;top:44%;width:min(70vw,300px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:22px;box-shadow:0 0 0 9999px rgba(10,14,20,.6)}
+  .marco i{position:absolute;width:42px;height:42px;border:4px solid #dfe4eb}
+  .marco i:nth-child(1){top:-2px;left:-2px;border-right:0;border-bottom:0;border-radius:20px 0 0 0}
+  .marco i:nth-child(2){top:-2px;right:-2px;border-left:0;border-bottom:0;border-radius:0 20px 0 0}
+  .marco i:nth-child(3){bottom:-2px;left:-2px;border-right:0;border-top:0;border-radius:0 0 0 20px}
+  .marco i:nth-child(4){bottom:-2px;right:-2px;border-left:0;border-top:0;border-radius:0 0 20px 0}
+  .laser{position:absolute;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,#9fb4d4,transparent);top:10%;animation:laser 2s ease-in-out infinite alternate}
+  @keyframes laser{to{top:90%}}
+  .scan-txt{position:absolute;left:0;right:0;top:calc(44% + min(35vw,150px) + 24px);text-align:center;color:#fff;font-weight:700;padding:0 24px}
+  .scan-txt small{display:block;opacity:.7;font-weight:500;margin-top:4px}
+  .scan-bar{position:absolute;left:0;right:0;bottom:0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));display:flex;gap:10px}
+  .scan-bar .btn{flex:1}
+  .scan-bar .btn.grande{flex:2;background:var(--boton);color:#fff;border-color:#2c384c;padding:16px;font-size:16px}
+  .res{text-align:center;padding:30px 22px}
+  .res .circ{width:84px;height:84px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;color:#fff}
+  .res .circ .ico{width:44px;height:44px;stroke-width:2.6}
+  .res .circ.ok{background:linear-gradient(180deg,#46987a,#2a6a50);box-shadow:0 10px 24px rgba(42,106,80,.35)}
+  .res .circ.mal{background:linear-gradient(180deg,#b65252,#8a2f2f)}
+  .res h2{font-size:22px}.res .h{font-size:40px;font-weight:800;color:var(--acero-700);font-variant-numeric:tabular-nums;margin:6px 0}
+  .espera-ico{width:70px;height:70px;border-radius:50%;margin:0 auto 12px;background:var(--warn-bg);color:var(--warn);display:flex;align-items:center;justify-content:center}
+  .espera-ico .ico{width:36px;height:36px}
+</style>
+</head>
+<body>
+
+<!-- ================= BIENVENIDA ================= -->
+<div id="vInicio" class="vista oculto">
+  <div class="hero metal-osc">
+    <div class="logo"><svg class="ico" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3M20 17v.01"/></svg></div>
+    <small>Colegio Técnico Profesional de Liberia</small>
+    <h1>CTPL Asistencia</h1>
+    <p>Carnet digital y registro de entrada y salida</p>
+  </div>
+  <div class="wrap sube">
+    <div class="panel card">
+      <div id="iniMsg"></div>
+      <div class="opciones">
+      <button class="gran-btn g-pri" onclick="irRegistro()">
+        <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17c.8-1.8 2-2.7 3.5-2.7s2.7.9 3.5 2.7M15 9h3M15 13h3"/></svg>
+        <div><b>Crear mi cuenta</b><span>Registro de carnet, correo y contraseña en un solo paso</span></div></button>
+      <button class="gran-btn g-sec" onclick="irLogin('tLogin')">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l4 4-4 4M14 12H4"/></svg>
+        <div><b>Ya tengo cuenta</b><span>Iniciar sesión en este teléfono</span></div></button>
+      </div>
+      <div class="nota"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+        <span>Use <b>su propio teléfono</b>. La cuenta queda ligada a este dispositivo y la administración debe aprobarla.</span></div>
+    </div>
+    <div class="panel instalar oculto" id="bInstalar">
+      <img src="img/icon-192.png" alt=""><div style="flex:1"><b>Instale la app</b><div class="ayuda" style="margin:0" id="txtInstalar">Ábrala desde su pantalla de inicio, como cualquier aplicación.</div></div>
+      <button class="btn btn-pri" id="btnInstalar" onclick="instalar()">Instalar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= REGISTRO UNIFICADO ================= -->
+<div id="vRegistro" class="vista oculto">
+  <div class="hero metal-osc" style="padding-bottom:70px">
+    <button class="volver" onclick="mostrar('vInicio')"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Volver</button>
+    <small>Paso único</small><h1>Crear mi cuenta</h1><p>Sus datos para el carnet y su acceso a la app</p>
+  </div>
+  <div class="wrap sube" style="max-width:1000px">
+    <div class="reg-grid">
+      <div class="panel card">
+        <div class="paso"><b>1</b><h2>Datos personales</h2></div>
+        <div class="campo"><label>Nombre completo</label><input class="inp mayus" id="rNom" maxlength="70" placeholder="Nombre y dos apellidos" oninput="pintarReg()"></div>
+        <div class="campo"><label>Cédula</label><input class="inp mono" id="rCed" inputmode="numeric" maxlength="12" placeholder="503520714" oninput="this.value=this.value.replace(/[^0-9A-Za-z]/g,'');pintarReg()"><div class="ayuda">Sin guiones ni espacios.</div></div>
+        <div class="paso"><b>2</b><h2>Puesto</h2></div>
+        <div class="campo"><label>Tipo de puesto</label><select class="inp mayus" id="rPue" onchange="pintarReg()"><option value="">— Seleccione —</option></select></div>
+        <div class="campo"><label>El cargo se escribe en</label>
+          <div class="seg"><label><input type="radio" name="rGen" value="M" checked onchange="pintarReg()"><span>Masculino</span></label>
+            <label><input type="radio" name="rGen" value="F" onchange="pintarReg()"><span>Femenino</span></label></div></div>
+        <div class="paso"><b>3</b><h2>Fotografía</h2></div>
+        <div class="fotobtns">
+          <button type="button" class="btn btn-pri" onclick="$('fCam').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Tomar foto</button>
+          <button type="button" class="btn btn-sec" onclick="$('fGal').click()"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Galería</button>
+        </div>
+        <input type="file" id="fCam" accept="image/*" capture="user" hidden onchange="cargarFoto(this)">
+        <input type="file" id="fGal" accept="image/*" hidden onchange="cargarFoto(this)">
+        <div class="ayuda">Fondo claro, de frente, sin gorra ni lentes oscuros.</div>
+        <div id="recorte"><canvas id="visor" width="520" height="520"></canvas>
+          <div class="zoom"><span>−</span><input type="range" id="zoom" min="1" max="3" step="0.01" value="1"><span>+</span></div>
+          <div class="ayuda">Arrastre para centrar el rostro y use la barra para acercar.</div></div>
+        <div class="paso"><b>4</b><h2>Acceso a la app</h2></div>
+        <div class="campo"><label>Correo electrónico</label><input class="inp" id="rCor" type="email" autocomplete="email" placeholder="nombre@mep.go.cr" oninput="pintarReg()"><div class="ayuda">Le enviaremos un código para verificarlo.</div></div>
+        <div class="campo"><label>Contraseña</label><input class="inp" id="rP1" type="password" autocomplete="new-password" oninput="pintarReg()"><div class="ayuda">Mínimo 8 caracteres, con letras y números.</div></div>
+        <div class="campo"><label>Repita la contraseña</label><input class="inp" id="rP2" type="password" autocomplete="new-password" oninput="pintarReg()"></div>
+        <div id="regMsg"></div>
+        <button class="btn btn-pri btn-bloque" id="bReg" onclick="enviarRegistro()" style="padding:16px;font-size:16px">Crear mi cuenta</button>
+      </div>
+      <div class="reg-prev"><div class="panel card" style="text-align:center">
+        <div class="tit" style="justify-content:center"><h3>Vista previa del carnet</h3></div>
+        <div class="prev" id="rPrev"></div>
+        <div class="chk" id="rChk"></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= VERIFICAR CORREO ================= -->
+<div id="vVerif" class="vista oculto">
+  <div class="hero metal-osc"><div class="logo"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+    <small>Último paso</small><h1>Verifique su correo</h1><p id="vfTxt"></p></div>
+  <div class="wrap sube"><div class="panel card">
+    <div id="vfMsg"></div>
+    <div class="campo"><label>Código de 6 dígitos</label><input class="inp mono codigo" id="vfCod" inputmode="numeric" maxlength="6" placeholder="000000" oninput="if(this.value.length===6)verificar()"></div>
+    <button class="btn btn-pri btn-bloque" onclick="verificar()">Verificar y ligar este teléfono</button>
+    <div class="campo oculto" id="vfClaveC" style="margin-top:16px"><label>Su contraseña (para reenviar)</label><input class="inp" id="vfClave" type="password"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:10px">
+      <button class="btn btn-txt" onclick="reenviar()">Enviar otro código</button>
+      <button class="btn btn-txt" onclick="cancelarVerif()">Cancelar</button>
+    </div>
+    <p class="ayuda">Revise también la carpeta de spam o correo no deseado.</p>
+  </div></div>
+</div>
+
+<!-- ================= ESPERA DE APROBACIÓN ================= -->
+<div id="vEspera" class="vista oculto">
+  <div class="hero metal-osc"><small>Cuenta creada</small><h1>En revisión</h1><p>La administración debe aprobar su cuenta</p></div>
+  <div class="wrap sube"><div class="panel card" style="text-align:center">
+    <div class="espera-ico"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+    <p style="margin-top:0">Su correo fue verificado y este teléfono quedó ligado a su cuenta. Cuando la administración la apruebe podrá marcar entrada y salida.</p>
+    <div class="prev" id="esPrev" style="margin:16px 0"></div>
+    <button class="btn btn-pri btn-bloque" onclick="revisarEstado(true)">Revisar ahora</button>
+    <p class="ayuda">Esta pantalla se actualiza sola cada minuto.</p>
+  </div></div>
+</div>
+
+<!-- ================= INICIAR SESIÓN ================= -->
+<div id="vLogin" class="vista oculto">
+  <div class="hero metal-osc">
+    <button class="volver" onclick="mostrar('vInicio')"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Volver</button>
+    <div class="logo"><svg class="ico" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l4 4-4 4M14 12H4"/></svg></div>
+    <h1>Ya tengo cuenta</h1><p>Colegio Técnico Profesional de Liberia</p></div>
+  <div class="wrap sube"><div class="panel card">
+    <div class="tabs">
+      <button class="on" data-t="tLogin" onclick="tabLogin('tLogin')">Iniciar sesión</button>
+      <button data-t="tAct" onclick="tabLogin('tAct')">Tengo un código</button>
+      <button data-t="tRec" onclick="tabLogin('tRec')">Olvidé clave</button>
+    </div>
+    <div id="lgMsg"></div>
+    <div id="tLogin">
+      <div class="campo"><label>Cédula</label><input class="inp" id="lCed" inputmode="numeric" autocomplete="username"></div>
+      <div class="campo"><label>Contraseña</label><input class="inp" id="lPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()"></div>
+      <button class="btn btn-pri btn-bloque" id="bLogin" onclick="entrar()">Ingresar</button>
+    </div>
+    <div id="tAct" class="oculto">
+      <p class="ayuda" style="margin-top:0">Use esta opción si la administración ligó su correo y le envió un código de activación.</p>
+      <div class="campo"><label>Cédula</label><input class="inp" id="aCed" inputmode="numeric"></div>
+      <div class="campo"><label>Código de activación</label><input class="inp mono" id="aCod" inputmode="numeric" maxlength="6"></div>
+      <div class="campo"><label>Cree su contraseña</label><input class="inp" id="aP1" type="password" autocomplete="new-password"></div>
+      <div class="campo"><label>Repita la contraseña</label><input class="inp" id="aP2" type="password" autocomplete="new-password"></div>
+      <button class="btn btn-pri btn-bloque" onclick="activar()">Activar en este teléfono</button>
+    </div>
+    <div id="tRec" class="oculto">
+      <div class="campo"><label>Cédula</label><input class="inp" id="rcCed" inputmode="numeric"></div>
+      <button class="btn btn-sec btn-bloque" onclick="pedirRecuperacion()">Enviar código a mi correo</button>
+      <div id="rcPaso2" class="oculto" style="margin-top:16px">
+        <div class="campo"><label>Código</label><input class="inp mono" id="rcCod" inputmode="numeric" maxlength="6"></div>
+        <div class="campo"><label>Nueva contraseña</label><input class="inp" id="rcP1" type="password" autocomplete="new-password"></div>
+        <button class="btn btn-pri btn-bloque" onclick="restablecer()">Cambiar contraseña</button>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ================= TELÉFONO NUEVO ================= -->
+<div id="vNuevo" class="vista oculto">
+  <div class="hero metal-osc"><div class="logo"><svg class="ico" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg></div>
+    <h1>Teléfono nuevo</h1><p>Confirme que es usted</p></div>
+  <div class="wrap sube"><div class="panel card">
+    <div id="nMsg"></div>
+    <p style="margin-top:0">Su cuenta está ligada a otro teléfono o navegador. Puede pasarla a <b>este teléfono</b> con un código enviado a <b id="nCorreo"></b>.</p>
+    <div class="alerta al-warn">El teléfono anterior dejará de funcionar y la administración recibirá un aviso. Solo se permite una vez por periodo; los siguientes cambios requieren aprobación.</div>
+    <div id="nPaso1"><button class="btn btn-pri btn-bloque" onclick="pedirRevinculo()">Enviar código a mi correo</button></div>
+    <div id="nPaso2" class="oculto">
+      <div class="campo"><label>Código recibido</label><input class="inp mono codigo" id="nCod" inputmode="numeric" maxlength="6" placeholder="000000"></div>
+      <button class="btn btn-pri btn-bloque" onclick="confirmarRevinculo()">Ligar a este teléfono</button>
+    </div>
+    <div style="text-align:center;margin-top:10px"><button class="btn btn-txt" onclick="mostrar('vLogin')">Cancelar</button></div>
+  </div></div>
+</div>
+
+<div id="vPend" class="vista oculto">
+  <div class="hero metal-osc"><div class="logo"><svg class="ico" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg></div>
+    <h1>Dispositivo en revisión</h1><p>Se necesita autorización</p></div>
+  <div class="wrap sube"><div class="panel card" style="text-align:center">
+    <p style="margin-top:0" id="pendTxt"></p>
+    <p class="ayuda">Cuando la aprueben, inicie sesión otra vez desde este mismo teléfono.</p>
+    <button class="btn btn-sec btn-bloque" onclick="mostrar('vLogin')">Volver</button>
+  </div></div>
+</div>
+
+<!-- ================= APLICACIÓN ================= -->
+<div id="vApp" class="vista oculto">
+  <div class="top metal-osc"><div class="top-in">
+    <img class="avatar" id="uFoto" alt="">
+    <div><h2 id="uNom"></h2><small id="uPuesto"></small></div>
+    <div class="verif"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>Verificado</div>
+  </div></div>
+  <div class="wrap sec">
+    <section id="pInicio">
+      <div class="panel card">
+        <div class="reloj mono" id="reloj">--:--:--</div>
+        <div class="fecha" id="fechaHoy"></div>
+        <div class="lineas" id="hoyMarcas"></div>
+        <button class="marcar-btn" onclick="escanear()"><svg class="ico" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3M20 17v.01"/></svg>Escanear QR para marcar</button>
+        <div class="sig" id="sigMarca"></div>
+      </div>
+      <div class="panel instalar oculto" id="bInstalar2"><img src="img/icon-192.png" alt=""><div style="flex:1"><b>Instale la app</b><div class="ayuda" style="margin:0" id="txtInstalar2">Quedará en su pantalla de inicio.</div></div><button class="btn btn-pri" onclick="instalar()">Instalar</button></div>
+      <div class="panel card">
+        <div class="tit"><h3>Esta semana</h3><span class="chip ch-info" id="hoyHorario"></span></div>
+        <div class="kpis" id="kSemana"></div>
+      </div>
+    </section>
+    <section id="pCarnet" class="oculto">
+      <div class="panel card">
+        <div class="tit"><h3>Carnet digital</h3><span class="chip ch-ok">Vigente</span></div>
+        <div class="carnet-zona"><div id="miCarnet"></div>
+          <div class="vigencia metal-osc"><b>CARNET DIGITAL VIGENTE</b><span id="vigReloj">--:--:--</span></div></div>
+        <p class="ayuda" style="text-align:center">La hora en movimiento confirma que el carnet se muestra en vivo y no es una captura.</p>
+      </div>
+    </section>
+    <section id="pHist" class="oculto">
+      <div class="panel card">
+        <div class="tit"><h3>Mis marcas</h3><div class="semnav">
+          <button class="btn btn-sec" onclick="moverSemana(-7)"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="btn btn-sec" onclick="moverSemana(7)"><svg class="ico" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div></div>
+        <div class="fecha" id="semTxt" style="margin-bottom:6px"></div>
+        <div id="histLista"></div>
+        <button class="btn btn-sec btn-bloque" style="margin-top:12px" onclick="descargarMias()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>Descargar semana (CSV)</button>
+      </div>
+    </section>
+    <section id="pInf" class="oculto">
+      <div class="tit" style="margin:4px 4px 12px"><h3 style="color:rgba(255,255,255,.85)">Informes semanales</h3></div>
+      <div id="infLista"></div>
+    </section>
+    <section id="pCuenta" class="oculto">
+      <div class="panel card"><div class="tit"><h3>Mi cuenta</h3></div><table class="tdia" id="datosCuenta"></table></div>
+      <div class="panel card"><div class="tit"><h3>Seguridad</h3></div>
+        <div class="interruptor"><div><b>Pedir huella o rostro al marcar</b><div class="ayuda" style="margin:0" id="bioTxt">Confirma que quien marca es el dueño del teléfono.</div></div><input type="checkbox" id="bioChk" onchange="cambiarBio(this)"></div>
+      </div>
+      <div class="panel card"><div class="tit"><h3>Mi horario</h3></div><table class="tdia" id="miHorario"></table>
+        <p class="ayuda">Si su horario no es correcto, solicite el ajuste a la administración.</p></div>
+      <div class="panel card"><div class="tit"><h3>Cambiar contraseña</h3></div>
+        <div class="campo"><label>Contraseña actual</label><input class="inp" id="cAct" type="password"></div>
+        <div class="campo"><label>Nueva contraseña</label><input class="inp" id="cNue" type="password" autocomplete="new-password"></div>
+        <button class="btn btn-pri btn-bloque" onclick="cambiarClave()">Guardar</button></div>
+      <button class="btn btn-peligro btn-bloque" onclick="salir()" style="margin-bottom:16px"><svg class="ico" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></svg>Cerrar sesión</button>
+    </section>
+  </div>
+  <nav class="bn" id="nav">
+    <button class="on" data-p="pInicio" onclick="ir(this)"></button><button data-p="pCarnet" onclick="ir(this)"></button>
+    <button data-p="pHist" onclick="ir(this)"></button><button data-p="pInf" onclick="ir(this)"></button><button data-p="pCuenta" onclick="ir(this)"></button>
+  </nav>
+</div>
+
+<!-- ================= ESCÁNER ================= -->
+<div id="scan">
+  <video id="video" playsinline muted></video>
+  <div class="marco"><i></i><i></i><i></i><i></i><div class="laser"></div></div>
+  <div class="scan-txt" id="scanTxt"></div>
+  <div class="scan-bar">
+    <button class="btn btn-sec" id="btnFotoQR" onclick="$('fotoQR').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Tomar foto</button>
+    <button class="btn btn-pri" onclick="cerrarScan()">Cancelar</button>
+  </div>
+  <input type="file" id="fotoQR" accept="image/*" capture="environment" hidden onchange="leerFotoQR(this)">
+  <canvas id="lienzo" hidden></canvas>
+</div>
+<div class="modal" id="mRes"><div class="panel mcaja res" id="resCaja"></div></div>
+<div class="cargando" id="cargando"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+  let INFO = {}, OFF = 0, DEV = '', S = null, P = null, LUNES = '', STREAM = null, LECTOR = null, ENVIANDO = false;
+  let REG = null, CLAVE_TMP = '', CED_TMP = '', T_ESPERA = null, INSTALADOR = null;
+  const VISTAS = ['vInicio','vRegistro','vVerif','vEspera','vLogin','vNuevo','vPend','vApp'];
+  const NAV = [['casa','Inicio'],['carnet','Carnet'],['reloj','Marcas'],['informe','Informes'],['user','Cuenta']];
+  document.querySelectorAll('#nav button').forEach((b,i) => b.innerHTML = ico(NAV[i][0]) + NAV[i][1]);
+  Object.keys(PUESTOS).forEach(k => $('rPue').insertAdjacentHTML('beforeend', '<option value="'+k+'">'+PUESTOS[k].txt+'</option>'));
+
+  function ahora(){ return Date.now() + OFF; }
+  function limpiarCed(c){ return String(c||'').toUpperCase().replace(/[^0-9A-Z]/g,''); }
+  function mostrar(v){
+    VISTAS.forEach(x => $(x).classList.toggle('oculto', x !== v));
+    document.body.classList.toggle('con-nav', v === 'vApp');
+    if (v !== 'vEspera') clearInterval(T_ESPERA);
+    window.scrollTo(0,0);
+  }
+  function aviso(id, t, tipo){ $(id).innerHTML = t ? '<div class="alerta al-'+(tipo||'err')+'">'+escH(t)+'</div>' : ''; }
+  async function firmaAuth(accion){
+    const ts = String(ahora());
+    return { ced: S.ced, dev: DEV, ts: ts, sig: await LLAVERO.firmar([S.ced, DEV, ts, accion].join('|')) };
+  }
+  function errorApp(e){
+    if ((e.message||'').indexOf('DISPOSITIVO_NO_AUTORIZADO') >= 0) {
+      LLAVERO.quitar('ses'); S = null; irLogin('tLogin');
+      aviso('lgMsg', 'Este teléfono ya no está autorizado para su cuenta. Inicie sesión para continuar.', 'warn');
+      return true;
+    }
+    return false;
+  }
+  async function persistir(){ try { if (navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) await navigator.storage.persist(); } catch (e) {} }
+
+  /* ================= ARRANQUE ================= */
+  async function init(){
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    if (!window.indexedDB || !window.crypto || !crypto.subtle) { mostrar('vInicio'); aviso('iniMsg', 'Este navegador no es compatible. Use Chrome o Safari actualizados, sin modo incógnito.'); return; }
+    try { const pl = localStorage.getItem('ctpl_plantilla'); if (pl) PLANTILLA = pl; } catch (e) {}
+    llamar('obtenerPlantilla').then(p => { if (p) { PLANTILLA = p; try { localStorage.setItem('ctpl_plantilla', p); } catch (e) {} } }).catch(() => {});
+    try {
+      DEV = await LLAVERO.idDispositivo();
+      S = await LLAVERO.leer('ses').catch(() => null);
+      REG = await LLAVERO.leer('reg').catch(() => null);
+      if (S && await LLAVERO.tieneLlave()) {
+        persistir();
+        const guardado = await LLAVERO.leer('perfil').catch(() => null);
+        if (guardado && guardado.ced === S.ced) { P = guardado; mostrar('vApp'); pintarPerfil(); cargarPerfil(true); }   // abre al instante y actualiza en segundo plano
+        else { cargando(true, 'Cargando…'); await revisarEstado(); cargando(false); }
+      }
+      else if (REG) irVerif();
+      else mostrar('vInicio');
+    } catch (e) { cargando(false); mostrar('vInicio'); aviso('iniMsg', e.message); }
+  }
+  /* Llama al servidor con firma; si la hora del teléfono está desfasada, la corrige y reintenta una vez */
+  async function firmado(fn, accion, ...args){
+    try { return await llamar(fn, await firmaAuth(accion), ...args); }
+    catch (e) {
+      if (!/Solicitud vencida/.test(e.message || '')) throw e;
+      INFO = await llamar('asisInfo'); OFF = INFO.ahora - Date.now();
+      return await llamar(fn, await firmaAuth(accion), ...args);
+    }
+  }
+  async function revisarEstado(manual){
+    try {
+      const e = await firmado('estadoCuenta', 'estado');
+      S.nombre = e.nombre; await LLAVERO.poner('ses', S);
+      if (e.estado === 'PENDIENTE') {
+        mostrar('vEspera');
+        const el = $('esPrev'); el.innerHTML = carnetHTML({nombre:e.nombre, cedula:e.ced, puesto:e.puesto, genero:e.genero, foto:e.foto}); ajustarCarnets(el);
+        clearInterval(T_ESPERA); T_ESPERA = setInterval(() => revisarEstado(), 60000);
+        if (manual) toast('Su cuenta aún está en revisión');
+      } else { clearInterval(T_ESPERA); await cargarPerfil(); if (manual) toast('¡Su cuenta fue aprobada!'); }
+    } catch (e) { if (!errorApp(e)) { mostrar('vInicio'); aviso('iniMsg', e.message); } }
+  }
+
+  /* ================= REGISTRO ================= */
+  const V = $('visor'), ctx = V.getContext('2d');
+  let IMG = null, esc0 = 1, zoomF = 1, ox = 0, oy = 0, FOTO = '';
+  function irRegistro(){ mostrar('vRegistro'); pintarReg(); }
+  function datosReg(){
+    return { nombre: $('rNom').value.replace(/\s+/g,' ').trim().toUpperCase(), cedula: limpiarCed($('rCed').value), puesto: $('rPue').value,
+      genero: document.querySelector('input[name=rGen]:checked').value, foto: FOTO, correo: $('rCor').value.trim().toLowerCase(), clave: $('rP1').value };
+  }
+  function pintarReg(){
+    const d = datosReg(), el = $('rPrev');
+    el.innerHTML = carnetHTML(d); ajustarCarnets(el);
+    const ok = [[d.nombre.split(' ').length >= 2,'Nombre'],[d.cedula.length >= 9,'Cédula'],[!!d.puesto,'Puesto'],[!!d.foto,'Fotografía'],
+      [/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.correo),'Correo'],[d.clave.length >= 8 && /[A-Za-z]/.test(d.clave) && /\d/.test(d.clave) && d.clave === $('rP2').value,'Contraseña']];
+    $('rChk').innerHTML = ok.map(x => '<div class="'+(x[0]?'ok':'')+'">'+ico('check')+x[1]+'</div>').join('');
+    return ok.every(x => x[0]);
+  }
+  function cargarFoto(inp){
+    const f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+    const im = new Image();
+    im.onload = () => { IMG = im; zoomF = 1; $('zoom').value = 1; esc0 = Math.max(V.width/im.naturalWidth, V.height/im.naturalHeight); ox = oy = 0;
+      $('recorte').style.display = 'block'; dibujar(); exportarFoto(); };
+    im.onerror = () => aviso('regMsg', 'No se pudo leer la imagen. Intente con otra foto.');
+    im.src = URL.createObjectURL(f);
+  }
+  function limitar(){ const s = esc0*zoomF, w = IMG.naturalWidth*s, h = IMG.naturalHeight*s, mx = Math.max(0,(w-V.width)/2), my = Math.max(0,(h-V.height)/2);
+    ox = Math.min(mx, Math.max(-mx, ox)); oy = Math.min(my, Math.max(-my, oy)); }
+  function dibujar(c, size){ c = c || ctx; size = size || V.width; const k = size/V.width, s = esc0*zoomF*k, w = IMG.naturalWidth*s, h = IMG.naturalHeight*s;
+    c.fillStyle = '#fff'; c.fillRect(0,0,size,size); c.drawImage(IMG, size/2-w/2+ox*k, size/2-h/2+oy*k, w, h); }
+  function exportarFoto(){ const cv = document.createElement('canvas'); cv.width = cv.height = 720; dibujar(cv.getContext('2d'), 720); FOTO = cv.toDataURL('image/jpeg', .88); pintarReg(); }
+  let arr = null, tmr = null;
+  function progExp(){ clearTimeout(tmr); tmr = setTimeout(exportarFoto, 120); }
+  V.addEventListener('pointerdown', e => { if (!IMG) return; arr = {x:e.clientX, y:e.clientY, ox, oy}; V.setPointerCapture(e.pointerId); });
+  V.addEventListener('pointermove', e => { if (!arr) return; const k = V.width/V.getBoundingClientRect().width; ox = arr.ox+(e.clientX-arr.x)*k; oy = arr.oy+(e.clientY-arr.y)*k; limitar(); dibujar(); progExp(); });
+  ['pointerup','pointercancel'].forEach(t => V.addEventListener(t, () => arr = null));
+  $('zoom').addEventListener('input', e => { if (!IMG) return; zoomF = +e.target.value; limitar(); dibujar(); progExp(); });
+
+  async function enviarRegistro(){
+    const d = datosReg();
+    if (d.nombre.split(' ').length < 2) return aviso('regMsg', 'Escriba su nombre completo con apellidos.');
+    if (d.cedula.length < 9) return aviso('regMsg', 'Revise la cédula (mínimo 9 dígitos, sin guiones).');
+    if (!d.puesto) return aviso('regMsg', 'Seleccione el tipo de puesto.');
+    if (!d.foto) return aviso('regMsg', 'Falta la fotografía.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.correo)) return aviso('regMsg', 'Revise el correo electrónico.');
+    if (d.clave !== $('rP2').value) return aviso('regMsg', 'Las contraseñas no coinciden.');
+    $('bReg').disabled = true; cargando(true, 'Creando su cuenta…'); aviso('regMsg', '');
+    try {
+      const r = await llamar('registroCompleto', Object.assign(d, { dev: DEV, info: LLAVERO.descripcion() }));
+      REG = { ced: r.ced, nombre: r.nombre, correo: r.correo }; CLAVE_TMP = d.clave;
+      await LLAVERO.poner('reg', REG); irVerif();
+      if (r.enviado === false) aviso('vfMsg', 'No se pudo enviar el correo. Toque "Enviar otro código" o consulte con la administración.', 'warn');
+    } catch (e) { aviso('regMsg', e.message); }
+    $('bReg').disabled = false; cargando(false);
+  }
+
+  /* ================= VERIFICACIÓN ================= */
+  function irVerif(){
+    mostrar('vVerif'); aviso('vfMsg', '');
+    $('vfTxt').textContent = 'Enviamos un código a ' + (REG.correo || 'su correo');
+    $('vfClaveC').classList.toggle('oculto', !!CLAVE_TMP);
+    $('vfCod').value = ''; setTimeout(() => $('vfCod').focus(), 300);
+  }
+  async function verificar(){
+    const c = $('vfCod').value.trim(); if (c.length !== 6) return aviso('vfMsg', 'Escriba los 6 dígitos del código.');
+    cargando(true, 'Verificando…');
+    try {
+      const r = await llamar('verificarRegistro', REG.ced, c, DEV, LLAVERO.descripcion());
+      await LLAVERO.guardarLlave(r.llave); persistir();
+      S = { ced: r.ced, nombre: r.nombre }; await LLAVERO.poner('ses', S); await LLAVERO.quitar('reg'); REG = null; CLAVE_TMP = '';
+      await revisarEstado();
+    } catch (e) { aviso('vfMsg', e.message); }
+    cargando(false);
+  }
+  async function reenviar(){
+    const clave = CLAVE_TMP || $('vfClave').value;
+    if (!clave) { $('vfClaveC').classList.remove('oculto'); return aviso('vfMsg', 'Escriba su contraseña para enviar otro código.', 'info'); }
+    cargando(true, 'Enviando…');
+    try { const r = await llamar('reenviarCodigoRegistro', REG.ced, clave, DEV, LLAVERO.descripcion()); CLAVE_TMP = clave; REG.correo = r.correo; await LLAVERO.poner('reg', REG);
+      aviso('vfMsg', 'Código enviado a ' + r.correo + '. Vence en 30 minutos.', 'ok'); $('vfClaveC').classList.add('oculto'); }
+    catch (e) { aviso('vfMsg', e.message); }
+    cargando(false);
+  }
+  async function cancelarVerif(){ await LLAVERO.quitar('reg'); REG = null; CLAVE_TMP = ''; mostrar('vInicio'); }
+
+  /* ================= SESIÓN ================= */
+  function irLogin(t){ mostrar('vLogin'); tabLogin(t || 'tLogin'); }
+  function tabLogin(id){
+    ['tLogin','tAct','tRec'].forEach(x => $(x).classList.toggle('oculto', x !== id));
+    document.querySelectorAll('#vLogin .tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === id));
+    aviso('lgMsg', '');
+  }
+  async function entrar(){
+    const ced = limpiarCed($('lCed').value), pass = $('lPass').value;
+    if (!ced || !pass) return aviso('lgMsg', 'Escriba su cédula y contraseña.');
+    $('bLogin').disabled = true; cargando(true, 'Verificando…');
+    try {
+      const ts = String(ahora()), sig = await LLAVERO.firmar([ced, DEV, ts, 'login'].join('|'));
+      const r = await llamar('iniciarSesion', ced, pass, DEV, LLAVERO.descripcion(), ts, sig);
+      if (r.auto) { CLAVE_TMP = pass; CED_TMP = ced; $('nCorreo').textContent = r.correo; $('nPaso1').classList.remove('oculto'); $('nPaso2').classList.add('oculto'); aviso('nMsg',''); mostrar('vNuevo'); }
+      else if (r.pendiente) {
+        $('pendTxt').innerHTML = r.limite ? 'Ya usó el cambio de teléfono permitido en este periodo. Se envió una <b>solicitud de autorización</b> a la administración.'
+          : 'Su cuenta está ligada a otro teléfono. Se envió una <b>solicitud de cambio de dispositivo</b> a la administración.';
+        mostrar('vPend');
+      } else {
+        if (r.llave) { await LLAVERO.guardarLlave(r.llave); persistir(); }
+        S = { ced: r.ced, nombre: r.nombre }; await LLAVERO.poner('ses', S); $('lPass').value = ''; await revisarEstado();
+      }
+    } catch (e) {
+      if ((e.message||'').indexOf('VERIFICAR_CORREO') >= 0) {
+        REG = { ced: ced, correo: '' }; CLAVE_TMP = pass; await LLAVERO.poner('reg', REG); irVerif();
+        aviso('vfMsg', 'Su correo aún no está verificado. Escriba el código o toque "Enviar otro código".', 'info');
+      } else aviso('lgMsg', e.message);
+    }
+    $('bLogin').disabled = false; cargando(false);
+  }
+  async function activar(){
+    if ($('aP1').value !== $('aP2').value) return aviso('lgMsg', 'Las contraseñas no coinciden.');
+    cargando(true, 'Activando…');
+    try { const r = await llamar('activarCuenta', $('aCed').value, $('aCod').value, $('aP1').value, DEV, LLAVERO.descripcion());
+      await LLAVERO.guardarLlave(r.llave); persistir(); S = { ced: r.ced, nombre: r.nombre }; await LLAVERO.poner('ses', S); await cargarPerfil(); toast('Cuenta activada en este teléfono'); }
+    catch (e) { aviso('lgMsg', e.message); }
+    cargando(false);
+  }
+  async function pedirRecuperacion(){
+    cargando(true);
+    try { const r = await llamar('recuperarClave', $('rcCed').value); aviso('lgMsg', 'Código enviado a ' + r.correo, 'ok'); $('rcPaso2').classList.remove('oculto'); }
+    catch (e) { aviso('lgMsg', e.message); }
+    cargando(false);
+  }
+  async function restablecer(){
+    cargando(true);
+    try { await llamar('restablecerClave', $('rcCed').value, $('rcCod').value, $('rcP1').value); tabLogin('tLogin'); aviso('lgMsg', 'Contraseña actualizada. Ya puede iniciar sesión.', 'ok'); }
+    catch (e) { aviso('lgMsg', e.message); }
+    cargando(false);
+  }
+  async function pedirRevinculo(){
+    cargando(true, 'Enviando código…');
+    try { const r = await llamar('solicitarRevinculo', CED_TMP, CLAVE_TMP, DEV, LLAVERO.descripcion());
+      aviso('nMsg', 'Código enviado a ' + r.correo + '. Vence en 15 minutos.', 'ok'); $('nPaso1').classList.add('oculto'); $('nPaso2').classList.remove('oculto'); }
+    catch (e) { aviso('nMsg', e.message); }
+    cargando(false);
+  }
+  async function confirmarRevinculo(){
+    cargando(true, 'Ligando teléfono…');
+    try { const r = await llamar('confirmarRevinculo', CED_TMP, $('nCod').value, DEV, LLAVERO.descripcion());
+      await LLAVERO.guardarLlave(r.llave); persistir(); S = { ced: r.ced, nombre: r.nombre }; await LLAVERO.poner('ses', S); CLAVE_TMP = ''; await cargarPerfil(); toast('Cuenta ligada a este teléfono'); }
+    catch (e) { aviso('nMsg', e.message); }
+    cargando(false);
+  }
+
+  /* ================= PERFIL ================= */
+  let ULT_PERFIL = 0;
+  async function cargarPerfil(silencioso){
+    try {
+      const n = await firmado('perfil', 'perfil', P && P.fotoId);
+      if (!n.foto && P && P.fotoId === n.fotoId) n.foto = P.foto;
+      P = n; OFF = P.ahora - Date.now(); ULT_PERFIL = Date.now();
+      LLAVERO.poner('perfil', P).catch(() => {});
+      if ($('vApp').classList.contains('oculto')) mostrar('vApp');
+      pintarPerfil(); revisarBio();
+    } catch (e) {
+      if (/DISPOSITIVO_NO_AUTORIZADO/.test(e.message || '')) {   // puede estar en espera de aprobación
+        try { const st = await firmado('estadoCuenta', 'estado'); if (st.estado === 'PENDIENTE') { LLAVERO.quitar('perfil'); return revisarEstado(); } } catch (x) {}
+        LLAVERO.quitar('perfil');
+      }
+      if (!errorApp(e) && !silencioso) { mostrar('vInicio'); aviso('iniMsg', e.message); }
+      else if (silencioso && !/DISPOSITIVO/.test(e.message || '')) toast('Sin conexión: mostrando la última información guardada');
+    }
+  }
+  function pintarPerfil(){
+    $('uFoto').src = P.foto || ''; $('uNom').textContent = P.nombre;
+    $('uPuesto').textContent = (PUESTOS[P.puesto] ? PUESTOS[P.puesto].txt : P.puesto) + ' · ' + P.ced;
+    pintarHoy();
+    const s = P.semana || {asis:0,prog:0,horas:'0:00',tard:0,aus:0};
+    $('kSemana').innerHTML = [[s.asis+'/'+s.prog,'Días'],[s.horas,'Horas'],[s.tard,'Tardías'],[s.aus,'Ausencias']].map(k => '<div class="kpi"><b class="mono">'+k[0]+'</b><span>'+k[1]+'</span></div>').join('');
+    $('hoyHorario').textContent = /^No labora/.test(P.hoy.horario) ? 'Hoy no labora' : 'Hoy ' + P.hoy.horario;
+    const el = $('miCarnet'); el.innerHTML = carnetHTML({nombre:P.nombre, cedula:P.ced, puesto:P.puesto, genero:P.genero, foto:P.foto}); ajustarCarnets(el);
+    $('datosCuenta').innerHTML = [['Nombre',P.nombre],['Cédula',P.ced],['Correo',P.correo],['Puesto',PUESTOS[P.puesto]?PUESTOS[P.puesto].txt:P.puesto],['Dispositivo',P.dispositivo],['Vinculado desde',P.vinculado]]
+      .map(r => '<tr><td style="color:var(--txt-2);width:38%">'+r[0]+'</td><td><b>'+escH(r[1]||'—')+'</b></td></tr>').join('');
+    $('miHorario').innerHTML = ['Lunes','Martes','Miércoles','Jueves','Viernes'].map((d,i) => '<tr><td style="color:var(--txt-2)">'+d+'</td><td class="mono"><b>'+escH(P.horario[i])+'</b></td></tr>').join('');
+  }
+  function pintarHoy(){
+    const m = P.hoy.marcas;
+    $('hoyMarcas').innerHTML = m.length ? m.map(x => '<div class="marca m-'+x.tipo.charAt(0)+'"><b>'+x.tipo+'</b><span class="mono">'+x.hora.slice(0,5)+'</span></div>').join('') : '<span class="vacio">Aún no hay marcas hoy</span>';
+    $('sigMarca').innerHTML = 'Su próxima marca será de <b>' + (m.length && m[m.length-1].tipo === 'ENTRADA' ? 'SALIDA' : 'ENTRADA') + '</b>';
+  }
+  setInterval(() => {
+    const d = new Date(ahora()), h = d.toLocaleTimeString('es-CR', {hour12:false});
+    $('reloj').textContent = h; $('vigReloj').textContent = h;
+    $('fechaHoy').textContent = mayus(d.toLocaleDateString('es-CR', {weekday:'long', day:'numeric', month:'long', year:'numeric'}));
+  }, 500);
+  function ir(b){
+    document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('on', x === b));
+    ['pInicio','pCarnet','pHist','pInf','pCuenta'].forEach(x => $(x).classList.toggle('oculto', x !== b.dataset.p));
+    if (b.dataset.p === 'pHist') { if (!LUNES) LUNES = lunesDe(fISO(new Date(ahora()))); cargarHist(); }
+    if (b.dataset.p === 'pInf') cargarInformes();
+    if (b.dataset.p === 'pInicio' && Date.now() - ULT_PERFIL > 60000) cargarPerfil(true);
+    window.scrollTo(0,0);
+  }
+
+  /* ================= HUELLA / ROSTRO (en el dispositivo) ================= */
+  const BIO = {
+    async disponible(){ try { return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch (e) { return false; } },
+    azar(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return a; },
+    async crear(){
+      const c = await navigator.credentials.create({ publicKey: { challenge: this.azar(32), rp: { name: 'CTPL Asistencia' },
+        user: { id: this.azar(16), name: S.ced, displayName: S.nombre || S.ced },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' }, timeout: 60000 } });
+      await LLAVERO.poner('bio', new Uint8Array(c.rawId));
+    },
+    async confirmar(){
+      const id = await LLAVERO.leer('bio').catch(() => null); if (!id) return;
+      await navigator.credentials.get({ publicKey: { challenge: this.azar(32), allowCredentials: [{ type: 'public-key', id: id }], userVerification: 'required', timeout: 60000 } });
+    }
+  };
+  async function revisarBio(){
+    const disp = await BIO.disponible();
+    $('bioChk').disabled = !disp; $('bioChk').checked = !!(await LLAVERO.leer('bio').catch(() => null));
+    if (!disp) $('bioTxt').textContent = 'Este teléfono o navegador no tiene huella o rostro disponible.';
+  }
+  async function cambiarBio(c){
+    try { if (c.checked) { await BIO.crear(); toast('Listo: se pedirá huella o rostro al marcar'); } else { await LLAVERO.quitar('bio'); toast('Desactivado'); } }
+    catch (e) { c.checked = false; toast('No se pudo activar: ' + (e.message || e)); }
+  }
+
+  /* ================= ESCÁNER EN VIVO ================= */
+  async function escanear(){
+    if (ENVIANDO) return;
+    try { await BIO.confirmar(); } catch (e) { return toast('Se canceló la verificación de huella o rostro'); }
+    $('scan').classList.add('ver'); $('btnFotoQR').classList.remove('grande');
+    $('scanTxt').innerHTML = 'Apunte al código QR de la pantalla de marcas<small>Se leerá automáticamente</small>';
+    try {
+      STREAM = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false });
+      const v = $('video'); v.srcObject = STREAM; await v.play();
+      LECTOR = null;
+      if ('BarcodeDetector' in window) { try { const f = await BarcodeDetector.getSupportedFormats(); if (f.indexOf('qr_code') >= 0) LECTOR = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) {} }
+      bucle();
+    } catch (e) {
+      $('scanTxt').innerHTML = 'No se pudo abrir la cámara en vivo<small>Permita el acceso a la cámara o use "Tomar foto"</small>';
+      $('btnFotoQR').classList.add('grande');
+    }
+  }
+  function cerrarScan(){ if (STREAM) STREAM.getTracks().forEach(t => t.stop()); STREAM = null; $('scan').classList.remove('ver'); }
+  async function bucle(){
+    if (!STREAM) return;
+    const v = $('video'); let txt = null;
+    try {
+      if (v.readyState >= 2) {
+        if (LECTOR) { const r = await LECTOR.detect(v); if (r.length) txt = r[0].rawValue; }
+        else txt = decodificar(v, v.videoWidth, v.videoHeight, 'dontInvert', 800);
+      }
+    } catch (e) {}
+    if (txt && txt.indexOf('CTPL|') === 0) { if (navigator.vibrate) navigator.vibrate(60); cerrarScan(); enviarMarca(txt); return; }
+    if (txt) $('scanTxt').innerHTML = 'Ese no es el código de marcas<small>Escanee el QR de la pantalla del colegio</small>';
+    setTimeout(bucle, 140);
+  }
+  function decodificar(fuente, w, h, modo, tam){
+    if (!w || !h) return null;
+    const k = Math.min(1, tam / Math.max(w, h)), cw = Math.round(w*k), ch = Math.round(h*k), c = $('lienzo');
+    c.width = cw; c.height = ch; const x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(fuente, 0, 0, cw, ch);
+    const r = jsQR(x.getImageData(0, 0, cw, ch).data, cw, ch, { inversionAttempts: modo });
+    return r ? r.data : null;
+  }
+  function leerFotoQR(inp){
+    const f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+    const im = new Image();
+    im.onload = async () => {
+      let t = null;
+      if (LECTOR) { try { const r = await LECTOR.detect(im); if (r.length) t = r[0].rawValue; } catch (e) {} }
+      for (const tam of [1400, 1000, 700, 1800]) { if (t) break; t = decodificar(im, im.naturalWidth, im.naturalHeight, 'attemptBoth', tam); }
+      if (t && t.indexOf('CTPL|') === 0) { cerrarScan(); enviarMarca(t); }
+      else { $('scanTxt').innerHTML = 'No se encontró el código en la foto<small>Acérquese, de frente y sin reflejos</small>'; $('btnFotoQR').classList.add('grande'); }
+    };
+    im.src = URL.createObjectURL(f);
+  }
+  function ubicacion(){
+    return new Promise((ok, mal) => {
+      if (!navigator.geolocation) return mal(new Error('Este teléfono no permite obtener la ubicación.'));
+      navigator.geolocation.getCurrentPosition(p => ok({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
+        () => mal(new Error('Active y permita la ubicación para marcar.')), { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 });
+    });
+  }
+  async function enviarMarca(qr){
+    ENVIANDO = true; cargando(true, 'Registrando marca…');
+    try {
+      const geo = (P && P.geo) ? await ubicacion() : null;
+      const r = await firmado('marcar', 'marcar|' + qr, qr, geo);
+      P.hoy.marcas = r.marcas; pintarHoy(); LLAVERO.poner('perfil', P).catch(() => {});
+      $('resCaja').innerHTML = '<div class="circ ok">' + ico('check') + '</div><h2>' + r.tipo + ' registrada</h2><div class="h">' + r.hora.slice(0,5) +
+        '</div><div class="fecha">' + fechaTxt(r.fecha) + '</div>' + (r.aviso ? '<div class="alerta al-warn">' + escH(r.aviso) + '</div>' : '') +
+        '<button class="btn btn-pri btn-bloque" style="margin-top:18px" onclick="cerrarM(\'mRes\')">Listo</button>';
+      if (navigator.vibrate) navigator.vibrate([60,60,60]);
+    } catch (e) {
+      if (errorApp(e)) { ENVIANDO = false; cargando(false); return; }
+      $('resCaja').innerHTML = '<div class="circ mal">' + ico('x') + '</div><h2>No se registró</h2><p>' + escH(e.message) + '</p>' +
+        '<div class="fila-btns" style="justify-content:center"><button class="btn btn-sec" onclick="cerrarM(\'mRes\')">Cerrar</button><button class="btn btn-pri" onclick="cerrarM(\'mRes\');escanear()">Intentar de nuevo</button></div>';
+    }
+    abrirM('mRes'); ENVIANDO = false; cargando(false);
+  }
+
+  /* ================= HISTORIAL E INFORMES ================= */
+  function moverSemana(n){ LUNES = sumarDias(LUNES, n); cargarHist(); }
+  async function cargarHist(){
+    $('semTxt').textContent = 'Semana del ' + fechaTxt(LUNES, true) + ' al ' + fechaTxt(sumarDias(LUNES, 6), true);
+    $('histLista').innerHTML = '<div class="vacio"><span class="spin osc"></span></div>';
+    try {
+      const l = await firmado('misMarcas', 'marcas', LUNES, sumarDias(LUNES, 6)); let h = '';
+      for (let i = 0; i < 7; i++) {
+        const f = sumarDias(LUNES, i), m = l.filter(x => x.fecha === f).sort((a,b) => a.hora < b.hora ? -1 : 1);
+        if (i > 4 && !m.length) continue;
+        h += '<div class="dia"><h4>' + fechaTxt(f) + (f === fISO(new Date(ahora())) ? ' <span class="chip ch-info">Hoy</span>' : '') + '</h4><div class="lineas">' +
+          (m.length ? m.map(x => '<div class="marca m-'+x.tipo.charAt(0)+'"'+(x.estado==='ANULADA'?' style="opacity:.45;text-decoration:line-through"':'')+'><b>'+x.tipo+'</b><span class="mono">'+x.hora.slice(0,5)+'</span>'+(x.metodo==='MANUAL'?'<span class="chip ch-gris">Manual</span>':'')+'</div>').join('') : '<span class="vacio">Sin marcas</span>') + '</div></div>';
+      }
+      $('histLista').innerHTML = h;
+    } catch (e) { if (!errorApp(e)) $('histLista').innerHTML = '<div class="alerta al-err">' + escH(e.message) + '</div>'; }
+  }
+  async function descargarMias(){
+    cargando(true, 'Preparando archivo…');
+    try { descargarB64(await firmado('miExportacion', 'exportar', LUNES, sumarDias(LUNES, 6))); } catch (e) { if (!errorApp(e)) toast(e.message); }
+    cargando(false);
+  }
+  function tarjetaInforme(x, enCurso){
+    const kp = [[x.asis+'/'+x.prog,'Días'],[x.horas,'Horas'],[x.tard,'Tardías'],[x.aus,'Ausencias']];
+    const est = x.aus || x.inc ? '<span class="chip ch-warn">Revisar</span>' : (x.tard ? '<span class="chip ch-warn">Tardías</span>' : '<span class="chip ch-ok">Al día</span>');
+    return '<div class="panel inf" onclick="this.classList.toggle(\'abierto\')"><h4><span>'+(enCurso?'Semana en curso':'Semana del '+fechaTxt(x.semana,true))+'</span>'+(enCurso?'<span class="chip ch-info">Parcial</span>':est)+'</h4>'+
+      '<div class="kpis" style="margin-top:12px">'+kp.map(k => '<div class="kpi"><b class="mono">'+k[0]+'</b><span>'+k[1]+'</span></div>').join('')+'</div>'+
+      '<button class="btn btn-sec btn-bloque" style="margin-top:10px;padding:9px" onclick="event.stopPropagation();pdfSemana(\''+x.semana+'\')">'+ico('descarga')+'Descargar informe PDF</button>'+
+      '<div class="det"><table class="tdia">'+(x.dias||[]).map(d => '<tr><td style="width:28%"><b>'+fechaTxt(d.fecha,true)+'</b></td><td class="mono">'+(d.marcas.join('<br>')||'—')+'</td><td style="text-align:right">'+
+        d.obs.map(o => '<span class="chip '+(['Tardía','Ausente','Sin salida','Salida anticipada'].indexOf(o)>=0?'ch-warn':'ch-gris')+'">'+o+'</span>').join(' ')+'</td></tr>').join('')+'</table></div></div>';
+  }
+  async function pdfSemana(lunes){
+    cargando(true, 'Generando PDF…');
+    try { descargarB64(await firmado('miInformePdf', 'informepdf', lunes)); } catch (e) { if (!errorApp(e)) toast(e.message); }
+    cargando(false);
+  }
+  async function cargarInformes(){
+    const el = $('infLista'), cur = P.semana ? tarjetaInforme(P.semana, true) : '';
+    el.innerHTML = cur + '<div class="vacio" style="text-align:center"><span class="spin osc"></span></div>';
+    try { const l = await firmado('misInformes', 'informes');
+      el.innerHTML = cur + (l.length ? l.map(x => tarjetaInforme(x)).join('') : '<div class="panel card vacio" style="text-align:center">Los informes se generan cada viernes al finalizar la jornada.</div>'); }
+    catch (e) { if (!errorApp(e)) el.innerHTML = '<div class="alerta al-err">' + escH(e.message) + '</div>'; }
+  }
+  async function cambiarClave(){
+    cargando(true);
+    try { await firmado('cambiarClave', 'clave', $('cAct').value, $('cNue').value); $('cAct').value = $('cNue').value = ''; toast('Contraseña actualizada'); }
+    catch (e) { if (!errorApp(e)) toast(e.message); }
+    cargando(false);
+  }
+  async function salir(){ await LLAVERO.quitar('perfil'); await LLAVERO.quitar('ses'); S = null; P = null; irLogin('tLogin'); }
+
+  /* ================= INSTALAR APP ================= */
+  const esIOS = /iPhone|iPad|iPod/.test(navigator.userAgent), instalada = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); INSTALADOR = e; ['bInstalar','bInstalar2'].forEach(x => $(x).classList.remove('oculto')); });
+  if (esIOS && !instalada) {
+    ['bInstalar','bInstalar2'].forEach(x => $(x).classList.remove('oculto'));
+    $('txtInstalar').textContent = $('txtInstalar2').textContent = 'En Safari toque Compartir y luego "Agregar a inicio".';
+    $('btnInstalar').classList.add('oculto'); document.querySelector('#bInstalar2 .btn').classList.add('oculto');
+  }
+  async function instalar(){ if (!INSTALADOR) return; INSTALADOR.prompt(); await INSTALADOR.userChoice; INSTALADOR = null; ['bInstalar','bInstalar2'].forEach(x => $(x).classList.add('oculto')); }
+
+  init();
+</script>
+</body>
+</html>
