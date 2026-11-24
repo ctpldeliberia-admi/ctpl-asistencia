@@ -324,6 +324,14 @@
   <div id="ipRes"></div>
 </div></div>
 
+<div class="modal" id="mDel"><div class="panel mcaja">
+  <h3>Eliminar persona</h3>
+  <p id="delTxt"></p>
+  <label style="display:flex;gap:8px;align-items:flex-start;margin:10px 0;font-size:14px"><input type="checkbox" id="delMar" style="margin-top:3px"> Borrar también todo su historial de marcas (los informes anteriores dejarán de mostrarla)</label>
+  <div class="campo"><label>Para confirmar, escriba la cédula</label><input class="inp" id="delCed" inputmode="numeric" autocomplete="off"></div>
+  <div class="fila-btns"><button class="btn btn-sec" onclick="cerrarM('mDel')">Cancelar</button><button class="btn btn-peligro" onclick="eliminarPersona()">Eliminar definitivamente</button></div>
+</div></div>
+
 <div class="modal" id="mMan"><div class="panel mcaja">
   <h3>Marca manual</h3>
   <div class="campo"><label>Funcionario</label><select class="inp" id="mmCed"></select></div>
@@ -503,6 +511,7 @@
       if (p.disp) a.push('<button class="btn btn-sec" onclick="liberar(\''+p.ced+'\')">Liberar disp.</button>');
       if (p.estado === 'ACTIVA') a.push('<button class="btn btn-peligro" onclick="estado(\''+p.ced+'\',\'BLOQUEADA\')">Bloquear</button>');
       if (p.estado === 'BLOQUEADA') a.push('<button class="btn btn-ok" onclick="estado(\''+p.ced+'\',\'ACTIVA\')">Desbloquear</button>');
+      a.push('<button class="btn btn-peligro" onclick="abrirEliminar(\''+p.ced+'\')">Eliminar</button>');
       return '<tr><td>'+pers(p)+'</td><td>'+chipEst(p.estado)+(p.estado==='ACTIVA'||p.estado==='BLOQUEADA'?'<div class="ayuda" style="margin-top:4px">'+escH(resumenHor(p.horario))+'</div>':'')+(p.pend&&p.pend.estado==='PENDIENTE'?' <span class="chip ch-warn">Disp. nuevo</span>':'')+'</td><td style="font-size:12.5px">'+escH(p.correo||'—')+
         '</td><td style="font-size:12px">'+escH(p.disp||'—')+(p.dispDesde?'<div class="ayuda">desde '+escH(p.dispDesde)+'</div>':'')+(p.auto?'<div class="ayuda">Último cambio propio: <b>'+escH(p.auto)+'</b></div>':'')+'</td><td style="font-size:12px">'+escH(p.ult||'—')+'</td><td><div class="acc">'+a.join('')+'</div></td></tr>';
     }).join('');
@@ -635,6 +644,24 @@
       const desde = tipo === 'marcas' ? $('mDesde').value : lunesDe($('iLunes').value);
       const hasta = tipo === 'marcas' ? $('mHasta').value : sumarDias(desde, 4);
       descargarB64(await api('asisExportar', tipo, desde, hasta, fmt));
+    } catch (e) { toast(e.message); }
+    cargando(false);
+  }
+
+  /* ---------- Eliminar persona ---------- */
+  let DEL_CED = '';
+  function abrirEliminar(ced){
+    const p = D.personal.find(x => x.ced === ced); DEL_CED = ced;
+    $('delTxt').textContent = 'Se eliminará a ' + (p ? p.nombre : ced) + ' (' + ced + '): su cuenta, su dispositivo vinculado, su registro de carnet y su fotografía. Esta acción no se puede deshacer. Si la persona vuelve, deberá registrarse de nuevo.';
+    $('delMar').checked = false; $('delCed').value = ''; abrirM('mDel');
+  }
+  async function eliminarPersona(){
+    if ($('delCed').value.replace(/\D/g,'') !== DEL_CED) return toast('La cédula no coincide');
+    cargando(true, 'Eliminando…');
+    try {
+      const r = await api('asisEliminarPersona', DEL_CED, $('delMar').checked);
+      cerrarM('mDel'); toast('Persona eliminada' + ($('delMar').checked ? ' con ' + r.marcas + ' marcas' : '; su historial de marcas se conservó'), 5000);
+      await cargar();
     } catch (e) { toast(e.message); }
     cargando(false);
   }
