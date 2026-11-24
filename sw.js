@@ -1,6 +1,6 @@
 /* CTPL · Service worker: guarda los archivos del sitio para que la app abra rápido.
    Las consultas al servidor (Apps Script) nunca se guardan. */
-const VERSION = 'ctpl-v3';
+const VERSION = 'ctpl-v4';
 const ARCHIVOS = ['./', './index.html', './config.js', './css/app.css', './js/comun.js', './js/carnet.js', './js/llavero.js',
   './js/jsQR.js', './img/plantilla_carnet.jpg', './img/icon-192.png', './img/icon-512.png', './manifest.webmanifest'];
 
