@@ -68,7 +68,8 @@
     <p class="ayuda" style="margin-top:0">Solo la administración puede autorizar este equipo. Quedará ligado a este navegador.</p>
     <div id="cMsg"></div>
     <div class="campo"><label>Nombre de la pantalla</label><input class="inp" id="cNom" placeholder="PORTÓN PRINCIPAL" style="text-transform:uppercase"></div>
-    <div class="campo"><label>Clave de administrador</label><input class="inp" id="cClave" type="password" onkeydown="if(event.key==='Enter')registrar()"></div>
+    <div class="campo"><label>Usuario de administración</label><input class="inp" id="cUsu" autocapitalize="none" style="text-transform:none"></div>
+    <div class="campo"><label>Contraseña</label><input class="inp" id="cClave" type="password" onkeydown="if(event.key==='Enter')registrar()"></div>
     <button class="btn btn-pri btn-bloque" onclick="registrar()">Autorizar esta pantalla</button>
   </div>
 </div>
@@ -111,7 +112,7 @@
   async function registrar(){
     cargando(true, 'Autorizando…');
     try {
-      const r = await llamar('kioscoRegistrar', $('cClave').value, $('cNom').value || 'PANTALLA');
+      const r = await llamar('kioscoRegistrar', $('cUsu').value.trim().toLowerCase(), $('cClave').value, $('cNom').value || 'PANTALLA');
       await LLAVERO.guardarLlave(r.llave, 'k_');
       K = { kid: r.kid, nombre: r.nombre }; await LLAVERO.poner('kiosco', K);
       $('vConfig').classList.add('oculto'); mostrarK(); pulso();

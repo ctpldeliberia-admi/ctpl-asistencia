@@ -24,7 +24,15 @@
   .menu button:hover{background:rgba(255,255,255,.07);color:#fff}
   .menu button.on{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.15) inset}
   .menu .badge{margin-left:auto;background:#d9a441;color:#2b2210;font-size:10.5px;font-weight:800;border-radius:20px;padding:1px 7px}
-  .lado .pie{margin-top:auto;font-size:11px;opacity:.6;padding:0 6px}
+  .yo{margin-top:auto;padding:12px;border-radius:12px;background:rgba(255,255,255,.07);font-size:12px}
+  .yo b{display:block;font-size:13px;color:#fff}.yo small{opacity:.75}
+  .yo .bts{display:flex;gap:6px;margin-top:8px}.yo .bts button{flex:1;border:0;border-radius:8px;padding:7px;background:rgba(255,255,255,.12);color:#fff;font:600 12px 'Inter';cursor:pointer}
+  .yo .bts button:hover{background:rgba(255,255,255,.2)}
+  .permgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .permgrid label{display:flex;gap:8px;align-items:flex-start;padding:9px 10px;border:1px solid var(--plata-300);border-radius:10px;font-size:13px;cursor:pointer;background:#fff}
+  .permgrid input{width:16px;height:16px;margin-top:2px;accent-color:var(--acero-600)}
+  @media(max-width:720px){.permgrid{grid-template-columns:1fr}}
+  .lado .pie{margin-top:10px;font-size:11px;opacity:.6;padding:0 6px}
   main{padding:24px 28px;min-width:0}
   .cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
   .cab h1{font-size:22px;color:var(--acero-700)}.cab p{margin:4px 0 0;color:var(--txt-2);font-weight:600}
@@ -106,7 +114,8 @@
   <h2 style="color:var(--acero-700)">CTPL Asistencia</h2>
   <p class="ayuda">Administración</p>
   <div id="lMsg"></div>
-  <input class="inp" type="password" id="clave" placeholder="Clave de administrador" style="text-align:center;margin:14px 0" onkeydown="if(event.key==='Enter')entrar()">
+  <input class="inp" id="lUsu" placeholder="Usuario" autocomplete="username" autocapitalize="none" style="text-align:center;margin:14px 0 8px;text-transform:none" onkeydown="if(event.key==='Enter')$('clave').focus()">
+  <input class="inp" type="password" id="clave" placeholder="Contraseña" autocomplete="current-password" style="text-align:center;margin:0 0 14px" onkeydown="if(event.key==='Enter')entrar()">
   <button class="btn btn-pri btn-bloque" onclick="entrar()">Ingresar</button>
 </div>
 
@@ -115,6 +124,7 @@
     <div class="marca-l"><div class="lg"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
       <div><b>CTPL Asistencia</b><small>Administración</small></div></div>
     <div class="menu" id="menu"></div>
+    <div class="yo" id="yo"></div>
     <div class="pie">Colegio Técnico Profesional de Liberia</div>
   </aside>
 
@@ -215,6 +225,13 @@
     </section>
 
     <!-- CONFIGURACIÓN -->
+    <section id="sUsu" class="oculto">
+      <div class="cab"><div><h1>Usuarios de administración</h1><p>Hasta 2 usuarios principales con todas las funciones; los secundarios solo tienen las funciones asignadas.</p></div>
+        <button class="btn btn-pri" onclick="abrirUsuario()">+ Nuevo usuario</button></div>
+      <div id="usuAviso"></div>
+      <div class="panel tabwrap"><table class="tabla" id="tUsu"></table></div>
+    </section>
+
     <section id="sCfg" class="oculto">
       <div class="cab"><div><h1>Configuración</h1><p>Jornada, seguridad y notificaciones</p></div>
         <button class="btn btn-pri" onclick="guardarCfg()">Guardar cambios</button></div>
@@ -268,8 +285,6 @@
           <div class="campo"><label>Fondo del carnet (opcional)</label><input type="file" id="pFile" accept="image/png,image/jpeg" class="inp">
             <div class="ayuda">Por defecto se usa el diseño oficial del sitio. Suba otra imagen solo si cambia el diseño.</div>
             <button class="btn btn-sec" style="margin-top:8px" onclick="subirPlantilla()">Subir fondo</button></div>
-          <div class="campo"><label>Nueva clave de administrador</label><input class="inp" type="password" id="nClave" placeholder="Mínimo 6 caracteres">
-            <button class="btn btn-sec" style="margin-top:8px" onclick="cambiarClaveAdmin()">Cambiar clave</button></div>
         </div>
         <div class="panel seccion">
           <h3>Enlaces</h3>
@@ -303,6 +318,29 @@
   <div id="mhDias"></div>
   <p class="ayuda">Desactive los días en que la persona no trabaja en la institución. Use <b>+ Jornada</b> para agregar un segundo horario el mismo día (por ejemplo, nocturno de 17:30 a 21:45). Cada jornada se evalúa por separado en tardías, salidas anticipadas y ausencias.</p>
   <div class="fila-btns"><button class="btn btn-sec" onclick="cerrarM('mHor')">Cancelar</button><button class="btn btn-pri" onclick="guardarHorario()">Guardar horario</button></div>
+</div></div>
+
+<div class="modal" id="mUsu"><div class="panel mcaja" style="width:min(640px,100%);max-height:92vh;overflow:auto">
+  <h3 id="uTit">Nuevo usuario</h3>
+  <div class="ipgrid" style="grid-template-columns:1fr 1fr">
+    <div class="campo"><label>Usuario (para ingresar)</label><input class="inp" id="uUsu" style="text-transform:none" autocapitalize="none" placeholder="ej. mrodriguez"></div>
+    <div class="campo"><label>Nombre completo</label><input class="inp" id="uNom"></div>
+    <div class="campo"><label>Correo (opcional)</label><input class="inp" id="uCor" style="text-transform:none" type="email"></div>
+    <div class="campo"><label id="uClaveL">Contraseña inicial</label><input class="inp" id="uCla" type="text" style="text-transform:none" autocomplete="off" placeholder="8+ caracteres, letras y números"></div>
+  </div>
+  <div class="campo"><label>Rol</label>
+    <select class="inp" id="uRol" onchange="pintarPermUsu()"><option value="SECUNDARIO">Secundario: solo las funciones marcadas</option><option value="PRINCIPAL">Principal: todas las funciones (máximo 2)</option></select></div>
+  <div id="uPermBox"><label class="lbl" style="display:block;font-weight:700;font-size:13px;margin:4px 0 8px">Funciones permitidas</label><div class="permgrid" id="uPerm"></div></div>
+  <div class="campo" style="margin-top:12px"><label><input type="checkbox" id="uAct" style="width:16px;height:16px;vertical-align:middle" checked> Usuario activo</label></div>
+  <div class="fila-btns"><button class="btn btn-sec" onclick="cerrarM('mUsu')">Cancelar</button><button class="btn btn-pri" onclick="guardarUsuario()">Guardar usuario</button></div>
+</div></div>
+
+<div class="modal" id="mClave"><div class="panel mcaja" style="width:min(420px,100%)">
+  <h3>Cambiar mi contraseña</h3>
+  <div class="campo" id="mcActBox"><label>Contraseña actual</label><input class="inp" type="password" id="mcAct" style="text-transform:none"></div>
+  <div class="campo"><label>Contraseña nueva</label><input class="inp" type="password" id="mcNue" style="text-transform:none" placeholder="8+ caracteres, letras y números"></div>
+  <div class="campo"><label>Repita la contraseña nueva</label><input class="inp" type="password" id="mcRep" style="text-transform:none"></div>
+  <div class="fila-btns"><button class="btn btn-sec" onclick="cerrarM('mClave')">Cancelar</button><button class="btn btn-pri" onclick="cambiarClaveAdmin()">Guardar</button></div>
 </div></div>
 
 <div class="modal" id="mPer"><div class="panel mcaja" style="width:min(920px,100%);max-height:92vh;overflow:auto">
@@ -383,8 +421,11 @@
 <script>
   const URL_SITIO = location.href.replace(/[^/]*([?#].*)?$/, '');
   let TOKEN = '', D = null, MARCAS = [], INF = null, FOTOS = {}, EDIT = '';
-  const SECC = [['sHoy','reloj','Hoy'],['sSol','bandeja','Solicitudes'],['sPer','grupo','Personal'],['sCar','carnet','Carnets'],['sMar','lista','Marcas'],['sInf','informe','Informes'],['sPan','pantalla','Pantallas'],['sCfg','engrane','Configuración']];
+  const SECC = [['sHoy','reloj','Hoy',null],['sSol','bandeja','Solicitudes','solicitudes'],['sPer','grupo','Personal',['personal','horarios','informes','eliminar']],['sCar','carnet','Carnets','carnets'],['sMar','lista','Marcas','marcas'],['sInf','informe','Informes','informes'],['sPan','pantalla','Pantallas','pantallas'],['sUsu','escudo','Usuarios','usuarios'],['sCfg','engrane','Configuración','config']];
+  const PERM_TXT = [['solicitudes','Aprobar cuentas y cambios de teléfono'],['personal','Gestionar cuentas: correo, liberar teléfono, bloquear'],['horarios','Asignar horarios y jornadas'],['informes','Ver y generar informes (semanal e individual)'],['marcas','Consultar marcas, marcas manuales y anulaciones'],['carnets','Carnets: editar e imprimir'],['pantallas','Autorizar pantallas de marcas'],['eliminar','Eliminar personas']];
+  let SES = null;
   try { TOKEN = sessionStorage.getItem('ctpl_asis_tok') || ''; } catch (e) {}
+  function puede(p){ if (!p) return true; if (!SES) return false; if (SES.rol === 'PRINCIPAL') return true; return (Array.isArray(p) ? p : [p]).some(x => SES.permisos.indexOf(x) >= 0); }
 
   function api(fn, ...a){
     return llamar(fn, TOKEN, ...a).catch(e => {
@@ -401,17 +442,30 @@
   function copiar(id){ const t = $(id).textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Enlace copiado'), () => prompt('Copie el enlace:', t)); }
 
   async function entrar(){
-    try { TOKEN = await llamar('adminLogin', $('clave').value); try { sessionStorage.setItem('ctpl_asis_tok', TOKEN); } catch (e) {} iniciar(); }
-    catch (e) { $('lMsg').innerHTML = '<div class="alerta al-err">' + escH(e.message) + '</div>'; }
+    try {
+      const r = await llamar('adminLogin', $('lUsu').value.trim().toLowerCase(), $('clave').value);
+      TOKEN = r.token; SES = r; $('clave').value = '';
+      try { sessionStorage.setItem('ctpl_asis_tok', TOKEN); } catch (e) {}
+      iniciar();
+    } catch (e) { $('lMsg').innerHTML = '<div class="alerta al-err">' + escH(e.message) + '</div>'; }
   }
-  function iniciar(){
+  async function iniciar(){
+    if (!SES) { try { SES = await api('adminSesion'); } catch (e) { return; } }
     $('vLogin').classList.add('oculto'); $('vApp').classList.remove('oculto');
-    $('menu').innerHTML = SECC.map((s,i) => '<button data-s="'+s[0]+'" class="'+(i?'':'on')+'" onclick="ir(\''+s[0]+'\')">'+ico(s[1])+s[2]+(s[0]==='sSol'?'<span class="badge oculto" id="bSol"></span>':'')+'</button>').join('');
+    const vis = SECC.filter(s => puede(s[3]));
+    $('menu').innerHTML = vis.map((s,i) => '<button data-s="'+s[0]+'" class="'+(i?'':'on')+'" onclick="ir(\''+s[0]+'\')">'+ico(s[1])+s[2]+(s[0]==='sSol'?'<span class="badge oculto" id="bSol"></span>':'')+'</button>').join('');
+    $('yo').innerHTML = '<small>Sesión de</small><b>'+escH(SES.nombre)+'</b><small>'+(SES.legado ? 'Acceso inicial' : (SES.rol === 'PRINCIPAL' ? 'Administrador principal' : 'Administrador secundario'))+' · '+escH(SES.u)+'</small>'+
+      '<div class="bts"><button onclick="abrirClave()">Mi contraseña</button><button onclick="salir()">Salir</button></div>';
+    $('usuAviso').innerHTML = SES.legado ? '<div class="alerta al-warn" style="margin-bottom:14px"><b>Primer paso:</b> cree aquí los usuarios principales. Al crear el primero, el acceso con la clave general se desactiva y deberá ingresar con su usuario.</div>' : '';
+    if (SES.legado) setTimeout(() => ir('sUsu'), 50);
+    else ir(vis[0][0]);
     $('lnkApp').textContent = URL_SITIO; $('lnkPan').textContent = $('lnkPan2').textContent = URL_SITIO + 'pantalla.html'; $('lnkReg').textContent = URL_SITIO + 'admin.html';
     cargar();
   }
+  async function salir(){ try { await api('adminSalir'); } catch (e) {} try { sessionStorage.removeItem('ctpl_asis_tok'); } catch (e) {} location.reload(); }
   function ir(s){
     document.querySelectorAll('#menu button').forEach(b => b.classList.toggle('on', b.dataset.s === s));
+    if (s === 'sUsu') cargarUsuarios();
     SECC.forEach(x => $(x[0]).classList.toggle('oculto', x[0] !== s));
     if (s === 'sMar' && !MARCAS.length) cargarMarcas();
     if (s === 'sInf' && !INF) cargarInforme();
@@ -424,7 +478,7 @@
       D = await api('asisAdminDatos');
       if (!$('mDesde').value) { $('mDesde').value = D.hoy; $('mHasta').value = D.hoy; $('iLunes').value = D.lunes; }
       pintarTodo(); cargarFotos();
-      api('adminListar').then(r => { $('gRegAb').checked = r.abierto; }).catch(() => {});
+      if (puede('config')) api('adminListar').then(r => { $('gRegAb').checked = r.abierto; }).catch(() => {});
     } catch (e) { toast(e.message); }
     cargando(false);
   }
@@ -505,13 +559,13 @@
     const l = D.personal.filter(p => filtroTxt(p, q) && (!f || p.estado === f));
     $('tPer').innerHTML = '<tr><th>Funcionario</th><th>Cuenta</th><th>Correo</th><th>Dispositivo</th><th>Último acceso</th><th>Acciones</th></tr>' + l.map(p => {
       const a = [];
-      a.push('<button class="btn btn-sec" onclick="editarCorreo(\''+p.ced+'\')">'+(p.correo ? 'Correo' : 'Ligar correo')+'</button>');
-      if (p.estado !== 'SIN_CUENTA' && p.estado !== 'PENDIENTE') a.push('<button class="btn btn-sec" onclick="editarHorario(\''+p.ced+'\')">Horario</button>');
-      if (p.estado === 'ACTIVA' || p.estado === 'BLOQUEADA') a.push('<button class="btn btn-sec" onclick="abrirInfPer(\''+p.ced+'\')">Informe</button>');
-      if (p.disp) a.push('<button class="btn btn-sec" onclick="liberar(\''+p.ced+'\')">Liberar disp.</button>');
-      if (p.estado === 'ACTIVA') a.push('<button class="btn btn-peligro" onclick="estado(\''+p.ced+'\',\'BLOQUEADA\')">Bloquear</button>');
-      if (p.estado === 'BLOQUEADA') a.push('<button class="btn btn-ok" onclick="estado(\''+p.ced+'\',\'ACTIVA\')">Desbloquear</button>');
-      a.push('<button class="btn btn-peligro" onclick="abrirEliminar(\''+p.ced+'\')">Eliminar</button>');
+      if (puede('personal')) a.push('<button class="btn btn-sec" onclick="editarCorreo(\''+p.ced+'\')">'+(p.correo ? 'Correo' : 'Ligar correo')+'</button>');
+      if (puede('horarios') && p.estado !== 'SIN_CUENTA' && p.estado !== 'PENDIENTE') a.push('<button class="btn btn-sec" onclick="editarHorario(\''+p.ced+'\')">Horario</button>');
+      if (puede('informes') && (p.estado === 'ACTIVA' || p.estado === 'BLOQUEADA')) a.push('<button class="btn btn-sec" onclick="abrirInfPer(\''+p.ced+'\')">Informe</button>');
+      if (puede('personal') && p.disp) a.push('<button class="btn btn-sec" onclick="liberar(\''+p.ced+'\')">Liberar disp.</button>');
+      if (puede('personal') && p.estado === 'ACTIVA') a.push('<button class="btn btn-peligro" onclick="estado(\''+p.ced+'\',\'BLOQUEADA\')">Bloquear</button>');
+      if (puede('personal') && p.estado === 'BLOQUEADA') a.push('<button class="btn btn-ok" onclick="estado(\''+p.ced+'\',\'ACTIVA\')">Desbloquear</button>');
+      if (puede('eliminar')) a.push('<button class="btn btn-peligro" onclick="abrirEliminar(\''+p.ced+'\')">Eliminar</button>');
       return '<tr><td>'+pers(p)+'</td><td>'+chipEst(p.estado)+(p.estado==='ACTIVA'||p.estado==='BLOQUEADA'?'<div class="ayuda" style="margin-top:4px">'+escH(resumenHor(p.horario))+'</div>':'')+(p.pend&&p.pend.estado==='PENDIENTE'?' <span class="chip ch-warn">Disp. nuevo</span>':'')+'</td><td style="font-size:12.5px">'+escH(p.correo||'—')+
         '</td><td style="font-size:12px">'+escH(p.disp||'—')+(p.dispDesde?'<div class="ayuda">desde '+escH(p.dispDesde)+'</div>':'')+(p.auto?'<div class="ayuda">Último cambio propio: <b>'+escH(p.auto)+'</b></div>':'')+'</td><td style="font-size:12px">'+escH(p.ult||'—')+'</td><td><div class="acc">'+a.join('')+'</div></td></tr>';
     }).join('');
@@ -853,8 +907,63 @@
     catch (e) { toast(e.message); }
     cargando(false);
   }
+  function abrirClave(){ ['mcAct','mcNue','mcRep'].forEach(i => $(i).value = ''); $('mcActBox').classList.toggle('oculto', !!SES.legado); abrirM('mClave'); }
   async function cambiarClaveAdmin(){
-    try { await api('adminCambiarClave', $('nClave').value); $('nClave').value = ''; toast('Clave de administrador actualizada'); } catch (e) { toast(e.message); }
+    if ($('mcNue').value !== $('mcRep').value) return toast('Las contraseñas nuevas no coinciden');
+    cargando(true, 'Guardando…');
+    try { await api('adminCambiarClave', $('mcAct').value, $('mcNue').value); cerrarM('mClave'); toast('Contraseña actualizada'); } catch (e) { toast(e.message); }
+    cargando(false);
+  }
+
+  /* ---------- Usuarios de administración ---------- */
+  let USU = [], U_EDIT = null;
+  async function cargarUsuarios(){
+    try { USU = await api('adminUsuarios'); pintarUsuarios(); } catch (e) { toast(e.message); }
+  }
+  function pintarUsuarios(){
+    const txt = Object.fromEntries(PERM_TXT);
+    $('tUsu').innerHTML = '<tr><th>Usuario</th><th>Rol</th><th>Funciones</th><th>Estado</th><th>Último acceso</th><th></th></tr>' + (USU.length ? USU.map(u =>
+      '<tr><td><b>'+escH(u.nombre)+'</b><div class="ayuda mono" style="margin:2px 0 0">'+escH(u.u)+(u.correo ? ' · '+escH(u.correo) : '')+'</div></td>'+
+      '<td><span class="chip '+(u.rol === 'PRINCIPAL' ? 'ch-info' : 'ch-gris')+'">'+(u.rol === 'PRINCIPAL' ? 'Principal' : 'Secundario')+'</span></td>'+
+      '<td style="font-size:12px;max-width:320px">'+(u.rol === 'PRINCIPAL' ? 'Todas las funciones' : u.permisos.map(p => '<span class="chip ch-gris" style="margin:2px">'+escH((txt[p]||p).split(':')[0].split(' (')[0])+'</span>').join(''))+'</td>'+
+      '<td><span class="chip '+(u.estado === 'ACTIVO' ? 'ch-ok' : 'ch-err')+'">'+(u.estado === 'ACTIVO' ? 'Activo' : 'Inactivo')+'</span></td>'+
+      '<td class="mono" style="font-size:12px">'+escH(u.ultimo || '—')+'</td>'+
+      '<td style="white-space:nowrap"><button class="btn btn-sec" onclick="abrirUsuario(\''+u.u+'\')">Editar</button> '+
+      (u.u !== SES.u ? '<button class="btn btn-peligro" onclick="eliminarUsuario(\''+u.u+'\')">Eliminar</button>' : '')+'</td></tr>').join('')
+      : '<tr><td colspan="6" class="ayuda" style="padding:24px;text-align:center">Aún no hay usuarios. Cree primero los usuarios principales.</td></tr>');
+  }
+  function pintarPermUsu(sel){
+    const marc = sel || [...document.querySelectorAll('#uPerm input:checked')].map(i => i.value);
+    $('uPerm').innerHTML = PERM_TXT.map(p => '<label><input type="checkbox" value="'+p[0]+'"'+(marc.indexOf(p[0]) >= 0 ? ' checked' : '')+'><span>'+escH(p[1])+'</span></label>').join('');
+    $('uPermBox').classList.toggle('oculto', $('uRol').value === 'PRINCIPAL');
+  }
+  function abrirUsuario(u){
+    const x = u ? USU.find(z => z.u === u) : null; U_EDIT = x;
+    $('uTit').textContent = x ? 'Editar usuario' : 'Nuevo usuario';
+    $('uUsu').value = x ? x.u : ''; $('uUsu').disabled = !!x;
+    $('uNom').value = x ? x.nombre : ''; $('uCor').value = x ? x.correo : ''; $('uCla').value = '';
+    $('uClaveL').textContent = x ? 'Nueva contraseña (vacío = no cambiar)' : 'Contraseña inicial';
+    $('uRol').value = x ? x.rol : (USU.filter(z => z.rol === 'PRINCIPAL' && z.estado === 'ACTIVO').length < 2 && SES.legado ? 'PRINCIPAL' : 'SECUNDARIO');
+    $('uAct').checked = x ? x.estado === 'ACTIVO' : true;
+    pintarPermUsu(x ? x.permisos : []); abrirM('mUsu');
+  }
+  async function guardarUsuario(){
+    const d = { nuevo: !U_EDIT, usuario: $('uUsu').value.trim().toLowerCase(), nombre: $('uNom').value, correo: $('uCor').value, clave: $('uCla').value,
+      rol: $('uRol').value, permisos: [...document.querySelectorAll('#uPerm input:checked')].map(i => i.value), estado: $('uAct').checked ? 'ACTIVO' : 'INACTIVO' };
+    cargando(true, 'Guardando…');
+    try {
+      await api('adminGuardarUsuario', d); cerrarM('mUsu');
+      if (SES.legado && d.rol === 'PRINCIPAL' && d.estado === 'ACTIVO') { toast('Usuario principal creado. Ingrese ahora con su usuario.', 5000); setTimeout(salir, 2500); }
+      else { toast('Usuario guardado'); cargarUsuarios(); }
+    } catch (e) { toast(e.message); }
+    cargando(false);
+  }
+  function eliminarUsuario(u){
+    confirmar('Eliminar usuario', 'El usuario «'+u+'» ya no podrá ingresar al panel. Las acciones que registró se conservan en la Bitácora.', async () => {
+      cargando(true, 'Eliminando…');
+      try { await api('adminEliminarUsuario', u); toast('Usuario eliminado'); cargarUsuarios(); } catch (e) { toast(e.message); }
+      cargando(false);
+    });
   }
   llamar('obtenerPlantilla').then(p => { if (p) PLANTILLA = p; }).catch(() => {});
 
