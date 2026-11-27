@@ -306,7 +306,7 @@
   <div class="fila-btns"><button class="btn btn-sec" onclick="cerrarM('mCorreo')">Cancelar</button><button class="btn btn-pri" onclick="guardarCorreo()">Aprobar y enviar código</button></div>
 </div></div>
 
-<div class="modal" id="mHor"><div class="panel mcaja" style="width:min(640px,100%)">
+<div class="modal" id="mHor"><div class="panel mcaja" style="width:min(640px,100%);max-height:92vh;overflow:auto">
   <h3>Horario semanal</h3>
   <p class="ayuda" id="mhNom" style="margin-top:-8px"></p>
   <div class="hpres">
@@ -316,7 +316,7 @@
     <button class="btn btn-sec" onclick="presetHor('copiar')">Copiar lunes a todos</button>
   </div>
   <div id="mhDias"></div>
-  <p class="ayuda">Desactive los días en que la persona no trabaja en la institución. Use <b>+ Jornada</b> para agregar un segundo horario el mismo día (por ejemplo, nocturno de 17:30 a 21:45). Cada jornada se evalúa por separado en tardías, salidas anticipadas y ausencias.</p>
+  <p class="ayuda">Desactive los días en que la persona no trabaja en la institución. Use <b>+ Jornada</b> para agregar un segundo horario el mismo día (por ejemplo, nocturno de 17:30 a 21:45). Cada jornada se evalúa por separado en tardías, salidas anticipadas y ausencias. Si la salida es menor que la entrada (por ejemplo, <b>18:00 a 06:00</b>), la jornada termina al día siguiente: la primera marca de esa mañana se registra como su salida. Sábado y domingo solo cuentan si se activan.</p>
   <div class="fila-btns"><button class="btn btn-sec" onclick="cerrarM('mHor')">Cancelar</button><button class="btn btn-pri" onclick="guardarHorario()">Guardar horario</button></div>
 </div></div>
 
@@ -579,34 +579,36 @@
   }
   /* ---------- Editor de horario por día y jornadas ---------- */
   function resumenHor(h){
-    h = h || {}; const ini = ['L','K','M','J','V'];
-    const dias = [1,2,3,4,5].filter(d => String(h[d]||'') !== '-');
+    h = h || {}; const ini = ['L','K','M','J','V','S','D'];
+    const dias = [1,2,3,4,5,6,7].filter(d => d <= 5 ? String(h[d]||'') !== '-' : (h[d] && h[d] !== '-'));
     const doble = dias.some(d => String(h[d]||'').indexOf(',') >= 0);
     const noche = dias.some(d => /(^|,)(1[7-9]|2\d):/.test(String(h[d]||'')));
+    const cruza = dias.some(d => String(h[d]||'').split(',').some(x => { const p = x.split('-'); return p.length === 2 && p[1] <= p[0]; }));
     if (!dias.length) return 'Sin días asignados';
-    return 'Labora: ' + dias.map(d => ini[d-1]).join(' ') + (doble ? ' · día y noche' : noche ? ' · nocturno' : '');
+    return 'Labora: ' + dias.map(d => ini[d-1]).join(' ') + (cruza ? ' · termina al día sig.' : doble ? ' · día y noche' : noche ? ' · nocturno' : '');
   }
-  const DIAS_H = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+  const DIAS_H = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
   let HOR = {};   // {1:{on:true, tramos:[['07:00','16:20'],['17:30','21:45']]}, ...}
-  function leerHor(v){
+  function leerHor(v, finde){
     v = String(v || '').replace(/\s/g, '');
-    if (v === '-') return { on: false, tramos: [[D.cfg.entrada, D.cfg.salida]] };
+    if (v === '-' || (finde && !v)) return { on: false, tramos: [[D.cfg.entrada, D.cfg.salida]] };
     if (!v) return { on: true, tramos: [[D.cfg.entrada, D.cfg.salida]] };
     return { on: true, tramos: v.split(',').map(x => x.split('-')) };
   }
   function editarHorario(ced){
     EDIT = ced; const p = D.personal.find(x => x.ced === ced); $('mhNom').textContent = p.nombre + ' · ' + ced;
-    HOR = {}; [1,2,3,4,5].forEach(d => HOR[d] = leerHor(p.horario[d]));
+    HOR = {}; [1,2,3,4,5,6,7].forEach(d => HOR[d] = leerHor(p.horario[d], d > 5));
     pintarHor(); abrirM('mHor');
   }
   function pintarHor(){
-    $('mhDias').innerHTML = [1,2,3,4,5].map(d => {
+    $('mhDias').innerHTML = [1,2,3,4,5,6,7].map(d => {
       const x = HOR[d];
       return '<div class="hdia'+(x.on?'':' off')+'"><div class="nom">'+DIAS_H[d-1]+
         '<label style="display:flex;align-items:center;gap:6px;margin:0"><input type="checkbox" class="sw" '+(x.on?'checked':'')+' onchange="HOR['+d+'].on=this.checked;pintarHor()"><span class="sw-lbl">'+(x.on?'Labora':'No labora')+'</span></label></div>'+
         '<div class="tramos">'+x.tramos.map((t,i) => '<div class="tramo"><span class="et">'+(i===0?'Jornada':'Jornada '+(i+1))+'</span>'+
           '<input type="time" class="inp mono" value="'+t[0]+'" onchange="HOR['+d+'].tramos['+i+'][0]=this.value"> a '+
-          '<input type="time" class="inp mono" value="'+t[1]+'" onchange="HOR['+d+'].tramos['+i+'][1]=this.value">'+
+          '<input type="time" class="inp mono" value="'+t[1]+'" onchange="HOR['+d+'].tramos['+i+'][1]=this.value;pintarHor()">'+
+          (t[1] && t[0] && t[1] <= t[0] ? '<span class="chip ch-info" style="font-size:10.5px">termina al día siguiente</span>' : '')+
           (i>0?'<button class="x" title="Quitar" onclick="HOR['+d+'].tramos.splice('+i+',1);pintarHor()">×</button>':'')+'</div>').join('')+
           (x.tramos.length < 3 ? '<button class="btn btn-sec masj" onclick="HOR['+d+'].tramos.push([\'17:30\',\'21:45\']);pintarHor()">+ Jornada</button>' : '')+
         '</div></div>';
@@ -623,8 +625,8 @@
   }
   async function guardarHorario(){
     const h = {};
-    [1,2,3,4,5].forEach(d => { const x = HOR[d];
-      h[d] = !x.on ? '-' : (x.tramos.length === 1 && x.tramos[0][0] === D.cfg.entrada && x.tramos[0][1] === D.cfg.salida) ? '' : x.tramos.map(t => t[0] + '-' + t[1]).join(','); });
+    [1,2,3,4,5,6,7].forEach(d => { const x = HOR[d];
+      h[d] = !x.on ? '-' : d > 5 ? x.tramos.map(t => t[0] + '-' + t[1]).join(',') : (x.tramos.length === 1 && x.tramos[0][0] === D.cfg.entrada && x.tramos[0][1] === D.cfg.salida) ? '' : x.tramos.map(t => t[0] + '-' + t[1]).join(','); });
     cargando(true);
     try { await api('asisHorario', EDIT, h); cerrarM('mHor'); toast('Horario guardado'); await cargar(); } catch (e) { toast(e.message); } cargando(false);
   }

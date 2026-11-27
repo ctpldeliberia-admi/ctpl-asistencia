@@ -642,12 +642,18 @@
     const el = $('miCarnet'); el.innerHTML = carnetHTML({nombre:P.nombre, cedula:P.ced, puesto:P.puesto, genero:P.genero, foto:P.foto}); ajustarCarnets(el);
     $('datosCuenta').innerHTML = [['Nombre',P.nombre],['Cédula',P.ced],['Correo',P.correo],['Puesto',PUESTOS[P.puesto]?PUESTOS[P.puesto].txt:P.puesto],['Dispositivo',P.dispositivo],['Vinculado desde',P.vinculado]]
       .map(r => '<tr><td style="color:var(--txt-2);width:38%">'+r[0]+'</td><td><b>'+escH(r[1]||'—')+'</b></td></tr>').join('');
-    $('miHorario').innerHTML = ['Lunes','Martes','Miércoles','Jueves','Viernes'].map((d,i) => '<tr><td style="color:var(--txt-2)">'+d+'</td><td class="mono"><b>'+escH(P.horario[i])+'</b></td></tr>').join('');
+    $('miHorario').innerHTML = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map((d,i) => '<tr><td style="color:var(--txt-2)">'+d+'</td><td class="mono"><b>'+escH(P.horario[i])+'</b></td></tr>').join('');
   }
+  function fechaCR(){ return new Intl.DateTimeFormat('en-CA', {timeZone:'America/Costa_Rica', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date(ahora())); }
   function pintarHoy(){
-    const m = P.hoy.marcas;
+    // Si la información guardada es de otro día, no se muestran marcas viejas y se actualiza.
+    const vigente = P.hoy && P.hoy.fecha === fechaCR();
+    const m = vigente ? P.hoy.marcas : [];
+    if (vigente) pintarHoy._pidio = false;
+    if (!vigente && !pintarHoy._pidio) { pintarHoy._pidio = true; setTimeout(() => { try { cargarPerfil(true); } catch (e) {} }, 300); }
     $('hoyMarcas').innerHTML = m.length ? m.map(x => '<div class="marca m-'+x.tipo.charAt(0)+'"><b>'+x.tipo+'</b><span class="mono">'+x.hora.slice(0,5)+'</span></div>').join('') : '<span class="vacio">Aún no hay marcas hoy</span>';
-    $('sigMarca').innerHTML = 'Su próxima marca será de <b>' + (m.length && m[m.length-1].tipo === 'ENTRADA' ? 'SALIDA' : 'ENTRADA') + '</b>';
+    const sig = vigente && P.hoy.sig ? P.hoy.sig : (m.length && m[m.length-1].tipo === 'ENTRADA' ? 'SALIDA' : 'ENTRADA');
+    $('sigMarca').innerHTML = 'Su próxima marca será de <b>' + sig + '</b>';
   }
   setInterval(() => {
     const d = new Date(ahora()), h = d.toLocaleTimeString('es-CR', {hour12:false});
@@ -752,7 +758,7 @@
     try {
       const geo = (P && P.geo) ? await ubicacion() : null;
       const r = await firmado('marcar', 'marcar|' + qr, qr, geo);
-      P.hoy.marcas = r.marcas; pintarHoy(); LLAVERO.poner('perfil', P).catch(() => {});
+      P.hoy.marcas = r.marcas; P.hoy.fecha = r.fecha || P.hoy.fecha; P.hoy.sig = r.tipo === 'ENTRADA' ? 'SALIDA' : 'ENTRADA'; pintarHoy(); LLAVERO.poner('perfil', P).catch(() => {});
       $('resCaja').innerHTML = '<div class="circ ok">' + ico('check') + '</div><h2>' + r.tipo + ' registrada</h2><div class="h">' + r.hora.slice(0,5) +
         '</div><div class="fecha">' + fechaTxt(r.fecha) + '</div>' + (r.aviso ? '<div class="alerta al-warn">' + escH(r.aviso) + '</div>' : '') +
         '<button class="btn btn-pri btn-bloque" style="margin-top:18px" onclick="cerrarM(\'mRes\')">Listo</button>';
